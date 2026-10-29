@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@prisma/client": "^7.10.1",
     "@supabase/supabase-js": "^2.118.0",
     "canvas-confetti": "^1.9.3",
     "jspdf": "^2.5.1",

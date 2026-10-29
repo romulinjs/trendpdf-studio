@@ -119,9 +119,6 @@ export default function Configuracoes({ onResetAllData, onShowToast, theme, onTh
               <p className="text-on-surface-variant dark:text-slate-400 text-[11px] leading-relaxed">
                 O arquivo <code className="px-1 py-0.5 bg-surface-container dark:bg-slate-800 rounded font-metric-mono text-primary">supabase_schema.sql</code> na raiz contém todo o DDL com tabelas relacionais, RLS, triggers e seed de dados.
               </p>
-              <p className="text-on-surface-variant dark:text-slate-400 text-[11px] leading-relaxed">
-                Também configurado o schema do Prisma em <code className="px-1 py-0.5 bg-surface-container dark:bg-slate-800 rounded font-metric-mono text-primary">prisma/schema.prisma</code> pronto para SQLite ou Postgres.
-              </p>
             </div>
           </div>
         </section>

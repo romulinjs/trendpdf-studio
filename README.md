@@ -4,7 +4,6 @@
 [![Vite](https://img.shields.io/badge/Vite-5.4-646cff?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%26%20Auth-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-ORM-2d3748?logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-API%20Flash-4285f4?logo=google&logoColor=white)](https://ai.google.dev/)
 
 Plataforma SaaS de inteligência preditiva para identificar demandas e tendências de mercado e transformá-las em infoprodutos lucrativos em formato PDF (e-books, planners imprimíveis, cadernos de atividades e checklists de alta conversão).
@@ -51,8 +50,6 @@ Plataforma SaaS de inteligência preditiva para identificar demandas e tendênci
 
 ```
 stitch_trendpdf_studio_interface/
-├── prisma/
-│   └── schema.prisma           # Modelagem ORM para SQLite local e PostgreSQL
 ├── src/
 │   ├── components/             # Modais, Header, Sidebar, Toasts e Skeletons
 │   │   ├── Header.jsx
