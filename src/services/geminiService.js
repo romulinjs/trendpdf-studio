@@ -1,8 +1,17 @@
 import { storageService } from './storageService';
 
+// Modelos suportados pela API v1beta do Google Gemini com fallback automático
+const GEMINI_MODELS = [
+  'gemini-3.5-flash-lite',
+  'gemini-3.5-flash',
+  'gemini-flash-latest',
+  'gemini-1.5-flash'
+];
+
 export const geminiService = {
   /**
    * Envia os parâmetros para a API do Google Gemini com System Prompt estrito para JSON puro.
+   * Utiliza modelos atualizados (gemini-3.5-flash-lite) com fallback automático.
    * Em caso de falha de rede, chave ausente ou formato inválido, retorna null de forma segura.
    */
   generateIdeasForNiche: async (niche, audience, angle, format) => {
@@ -72,29 +81,56 @@ Gere um array com exatamente 3 objetos JSON no seguinte formato:
   }
 ]`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: {
-              parts: [{ text: systemInstruction }]
-            },
-            contents: [
-              { parts: [{ text: userPrompt }] }
-            ],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              temperature: 0.7,
-            },
-          }),
-        }
-      );
+      const requestPayload = {
+        system_instruction: {
+          parts: [{ text: systemInstruction }]
+        },
+        contents: [
+          { parts: [{ text: userPrompt }] }
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.7,
+        },
+      };
 
-      if (!response.ok) {
-        const errorDetails = await response.json().catch(() => ({}));
-        console.error('Falha na resposta HTTP do Gemini:', response.status, errorDetails);
+      let response = null;
+      let lastError = null;
+
+      // Itera pelos modelos candidatos até obter sucesso
+      for (const modelName of GEMINI_MODELS) {
+        try {
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestPayload),
+            }
+          );
+
+          if (res.ok) {
+            response = res;
+            break;
+          } else {
+            const errDetails = await res.json().catch(() => ({}));
+            lastError = errDetails;
+            console.warn(`Modelo ${modelName} retornou status ${res.status}:`, errDetails?.error?.message || errDetails);
+            // Se for 404 (modelo depreciado ou inexistente) ou 503 (sobrecarregado), tenta o próximo
+            if (res.status === 404 || res.status === 503) {
+              continue;
+            } else {
+              break;
+            }
+          }
+        } catch (fetchErr) {
+          lastError = fetchErr;
+          console.warn(`Falha na requisição para ${modelName}:`, fetchErr.message);
+        }
+      }
+
+      if (!response) {
+        console.error('Falha em todos os modelos candidatos do Gemini:', lastError);
         return null;
       }
 
