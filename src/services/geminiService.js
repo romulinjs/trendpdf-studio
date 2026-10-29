@@ -3,34 +3,38 @@ import { storageService } from './storageService';
 export const geminiService = {
   generateIdeasForNiche: async (niche, audience, angle, format) => {
     const settings = storageService.getSettings();
-    const apiKey = settings.geminiApiKey?.trim();
+    const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || settings.geminiApiKey || '').trim();
 
-    if (apiKey) {
-      try {
-        const prompt = `Você é um estrategista editorial de elite especialista em criação e validação de infoprodutos e e-books em PDF.
+    if (!apiKey) {
+      throw new Error(
+        'Chave da API do Google Gemini não configurada. Por favor, adicione sua Gemini API Key em "Configurações" ou defina VITE_GEMINI_API_KEY no arquivo .env.'
+      );
+    }
+
+    const prompt = `Você é um estrategista editorial de elite especialista em criação e validação de infoprodutos e e-books em PDF.
 Crie 3 ideias altamente lucrativas, inovadoras e detalhadas de produtos digitais em PDF para o seguinte mercado:
 - Nicho/Assunto: "${niche}"
 - Público-Alvo: "${audience}"
 - Abordagem/Ângulo: "${angle}"
 - Formato Desejado: "${format}"
 
-Retorne ESTRITAMENTE um JSON no seguinte formato (sem formatação markdown extra fora do json):
+Retorne ESTRITAMENTE um array JSON contendo 3 objetos no seguinte formato (sem formatação markdown extra fora do json):
 [
   {
     "id": "INF-2026-01",
-    "title": "Título magnético do PDF",
-    "format": "Formato e número de páginas (ex: Guia Prático + Checklists (55 págs))",
+    "title": "Título magnético e persuasivo do PDF",
+    "format": "Formato e número de páginas estimado (ex: Guia Prático + Checklists (55 págs))",
     "formatType": "E-book Guia",
-    "category": "Categoria principal",
+    "category": "${niche}",
     "score": 9.3,
     "status": "Pronto para Produção",
     "suggestedPrice": "R$ 47,00",
     "orderBump": "R$ 19,90 (Fichas complementares)",
     "profitMargin": "95% Líquido",
     "targetAudience": "${audience}",
-    "corePain": "Qual dor aguda este PDF resolve",
+    "corePain": "Qual dor aguda e urgente este infoproduto resolve",
     "whySellNow": "Por que há alta demanda comercial agora",
-    "description": "Resumo de 2 a 3 frases persuasivas sobre a proposta do produto.",
+    "description": "Resumo de 2 a 3 frases persuasivas sobre a proposta de valor do produto.",
     "chapters": [
       { "number": 1, "title": "Título do capítulo 1" },
       { "number": 2, "title": "Título do capítulo 2" },
@@ -46,107 +50,72 @@ Retorne ESTRITAMENTE um JSON no seguinte formato (sem formatação markdown extr
   }
 ]`;
 
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: {
-                responseMimeType: 'application/json',
-                temperature: 0.7,
-              },
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) {
-            const parsed = JSON.parse(text);
-            return parsed.map((item, index) => ({
-              ...item,
-              id: item.id || `INF-${Date.now().toString().slice(-4)}-${index + 1}`,
-              saved: false,
-              coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
-            }));
-          }
-        }
-      } catch (err) {
-        console.warn('Falha na chamada Gemini API, utilizando motor algorítmico local:', err);
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.7,
+          },
+        }),
       }
+    );
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      const errorMsg = errData?.error?.message || `Erro ${response.status} ao consultar a API do Google Gemini.`;
+      throw new Error(errorMsg);
     }
 
-    // Smart Local Generator Engine (realistic synthesis)
-    await new Promise((resolve) => setTimeout(resolve, 800)); // Smooth UX transition
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    const randomId = Math.floor(1000 + Math.random() * 9000);
-    const cleanNiche = niche.trim() || 'Produtividade & Organização';
+    if (!text) {
+      throw new Error('A API do Google Gemini não retornou nenhum texto de resposta.');
+    }
 
-    return [
-      {
-        id: `INF-${randomId}-A`,
-        title: `Manual Prático: Como Dominar ${cleanNiche} em 21 Dias`,
-        format: `Guia de Ação Rápida + Planilhas (${format.includes('Planner') ? '32 págs' : '58 págs'})`,
-        formatType: format.includes('Planner') ? 'Planner Imprimível' : 'E-book Guia',
-        category: 'Inteligência de Mercado',
-        score: +(8.8 + Math.random() * 0.9).toFixed(1),
-        status: 'Pronto para Produção',
-        saved: false,
-        suggestedPrice: 'R$ 47,00',
-        orderBump: 'R$ 19,90 (Fichas de Acompanhamento)',
-        profitMargin: '94% Líquido',
-        targetAudience: audience || 'Profissionais e entusiastas do nicho',
-        corePain: `Insegurança e falta de método passo a passo ao lidar com ${cleanNiche.toLowerCase()}`,
-        whySellNow: `Busca acelerada nos últimos 90 dias com escassez de materiais práticos diagramados em formato kit.`,
-        description: `Estratégia completa estruturada com foco em execução diária, eliminando ruídos teóricos e entregando resultados visíveis logo nas primeiras 48 horas.`,
-        coverImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuhZeLU8XF9cnPT7_WoWP2e8r0MVlgyec52YR9r93X53G8LLUXeTGmu6LfSt270Xd7-GHij7DGRw9GcRRvlg1_ael9unAFCcbFUVc8YN-4WVHCKpSX9COeRlPmtZnm0ipDtW7nFaNbpKKUANc0P-Xbb0q_1WyjQGGssyRSyQNvsChInm4YXkl3y7svV1IoD3oRna-MLwyjZtuGyEGR86KcB3hPlqmzRXekNXmZsCQ',
-        chapters: [
-          { number: 1, title: `O Panorama de ${cleanNiche}: Os 3 mitos que atrasam 90% das pessoas` },
-          { number: 2, title: `Diagnóstico Inicial: Identificando seus gargalos mais críticos em 15 minutos` },
-          { number: 3, title: `Os Fundamentos Inegociáveis: A base essencial para começar do jeito certo` },
-          { number: 4, title: `Passo a Passo Guiado: Como estruturar sua rotina com eficiência máxima` },
-          { number: 5, title: `Ferramentas e Recursos Gratuitos: Montando seu ecossistema sem custos extras` },
-          { number: 6, title: `Superando Obstáculos Frequentes: O que fazer quando as coisas não saem como planejado` },
-          { number: 7, title: `Estudo de Caso Prático: Como sair do zero e atingir consistência em 2 semanas` },
-          { number: 8, title: `Checklists e Roteiros de Ação Rápida para o dia a dia` },
-          { number: 9, title: `Manutenção de Hábitos e Escalabilidade a Longo Prazo` },
-          { number: 10, title: `Plano de Ação Final dos Próximos 30 Dias + Ficha de Autoavaliação` }
-        ]
-      },
-      {
-        id: `INF-${randomId}-B`,
-        title: `Kit Visual & Desafio Prático: ${cleanNiche} Sem Complicação`,
-        format: `Caderno de Atividades Gamificado (44 págs)`,
-        formatType: 'Caderno Gamificado',
-        category: 'Prático & Visual',
-        score: +(8.9 + Math.random() * 0.8).toFixed(1),
-        status: 'Rascunho',
-        saved: false,
-        suggestedPrice: 'R$ 37,00',
-        orderBump: 'R$ 14,90 (Cartões Desafio Imprimíveis)',
-        profitMargin: '96% Líquido',
-        targetAudience: audience || 'Iniciantes que buscam aprendizagem lúdica',
-        corePain: `Tédio com cursos em vídeo longos e livros teóricos densos`,
-        whySellNow: `Formatos táteis e imprimíveis têm taxa de cancelamento inferior a 1.2% nas principais plataformas.`,
-        description: `Mapas mentais, exercícios guiados e fichas interativas desenhadas para imprimir ou preencher no tablet com foco em retenção rápida.`,
-        coverImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDxRDNoCWmN76ugp8YcMmEnRgrkYuZc2qBSFVzFohZ5a8BM0SKjEO_K0rmHhZU4Yv2KCXd4ol4HvP12ztZP5tXTbYgUM5Uh3kz6psnb3aotda2aoap3-FM_elSReFlPplyFx6yuWreYWANixubQpTQDxi4bIIEqLHfNrAGNoSeuAK10qsj3_rwxUG7kT_JXgQLGzEspoSwJFzrBAcGxEqQXc8KKg9rZt2QA5k7oh-Y',
-        chapters: [
-          { number: 1, title: `Mapa de Boas-Vindas e Regras do Desafio Visual` },
-          { number: 2, title: `Ficha 1: O Teste de Maturidade e Definição de Metas Claras` },
-          { number: 3, title: `Atividade Prática: Organizando prioridades pelo método das 4 zonas` },
-          { number: 4, title: `O Jogo dos 7 Erros Comuns em ${cleanNiche}` },
-          { number: 5, title: `Ficha Semanal de Rastreamento de Progresso e Vitórias Rápidas` },
-          { number: 6, title: `Exercício de Quebra de Resistência Mental e Bloqueios Criativos` },
-          { number: 7, title: `Guia de Consulta Rápida: Atalhos, fórmulas e modelos prontos` },
-          { number: 8, title: `Desafio dos 14 Dias: Uma missão prática por dia` },
-          { number: 9, title: `Quadro de Recompensas e Celebração de Marcos` },
-          { number: 10, title: `Certificado de Conclusão e Próximos Passos` }
-        ]
-      }
-    ];
+    // Tratamento para remover blocos de markdown ```json ... ``` caso existam
+    let cleanJson = text.trim();
+    if (cleanJson.startsWith('```')) {
+      cleanJson = cleanJson.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    }
+
+    const parsed = JSON.parse(cleanJson);
+    const ideasList = Array.isArray(parsed) ? parsed : (parsed.ideas || [parsed]);
+
+    return ideasList.map((item, index) => ({
+      ...item,
+      id: item.id || `INF-${Date.now().toString().slice(-4)}-${index + 1}`,
+      saved: false,
+      format: item.format || format || 'E-book Guia (50 págs)',
+      formatType: item.formatType || 'E-book Guia',
+      category: item.category || niche,
+      score: typeof item.score === 'number' ? item.score : +(9.0 + (index * 0.2)).toFixed(1),
+      status: item.status || 'Pronto para Produção',
+      suggestedPrice: item.suggestedPrice || 'R$ 47,00',
+      orderBump: item.orderBump || 'R$ 19,90 (Fichas complementares)',
+      profitMargin: item.profitMargin || '95% Líquido',
+      targetAudience: item.targetAudience || audience,
+      corePain: item.corePain || 'Dores e desafios principais do público-alvo',
+      whySellNow: item.whySellNow || 'Alta demanda orgânica de busca no Google Trends',
+      description: item.description || 'Infoproduto completo modelado e diagramado em PDF.',
+      coverImage: item.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
+      chapters: Array.isArray(item.chapters) && item.chapters.length > 0 ? item.chapters : [
+        { number: 1, title: 'Introdução e Diagnóstico Inicial' },
+        { number: 2, title: 'Fundamentos Essenciais' },
+        { number: 3, title: 'Mapeamento das Principais Dores' },
+        { number: 4, title: 'Estratégia Passo a Passo' },
+        { number: 5, title: 'Ferramentas e Recursos Recomendados' },
+        { number: 6, title: 'Superando Obstáculos Frequentes' },
+        { number: 7, title: 'Estudos de Caso e Aplicações Práticas' },
+        { number: 8, title: 'Checklists e Roteiros de Ação' },
+        { number: 9, title: 'Escalabilidade e Manutenção de Resultados' },
+        { number: 10, title: 'Plano de Ação dos Próximos 30 Dias' }
+      ]
+    }));
   }
 };
-
