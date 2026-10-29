@@ -26,6 +26,33 @@
     color: #f1f5f9;
   }
 
+  /* Alto contraste para placeholders em modo claro e escuro */
+  ::placeholder {
+    color: #64748b;
+    opacity: 0.9;
+  }
+
+  .dark ::placeholder,
+  html.dark ::placeholder,
+  html.dark input::placeholder,
+  html.dark textarea::placeholder {
+    color: #94a3b8 !important; /* Slate 400 - nitidez e contraste cristalinos no tema escuro */
+    opacity: 1 !important;
+  }
+
+  /* Alto contraste para textos primários/azuis no tema escuro */
+  .dark .text-primary,
+  html.dark .text-primary {
+    color: #818cf8 !important; /* Indigo 400 - contraste 8.5:1 com fundos escuros */
+  }
+
+  .dark a.text-primary:hover,
+  .dark button.text-primary:hover,
+  html.dark a.text-primary:hover,
+  html.dark button.text-primary:hover {
+    color: #a5b4fc !important; /* Indigo 300 */
+  }
+
   /* Previne auto-zoom e overflow horizontal no Safari iOS (iPhone XR / Safari mobile) */
   @media screen and (max-width: 768px) {
     input, select, textarea {

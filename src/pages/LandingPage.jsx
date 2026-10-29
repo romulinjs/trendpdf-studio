@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function LandingPage({ theme, onThemeChange, onReturnToDashboard }) {
+export default function LandingPage({ theme, onThemeChange }) {
   const { openAuthModal } = useAuth();
 
   return (
@@ -55,35 +55,22 @@ export default function LandingPage({ theme, onThemeChange, onReturnToDashboard 
               </span>
             </button>
 
-            {onReturnToDashboard ? (
-              <button
-                onClick={onReturnToDashboard}
-                type="button"
-                className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-md shadow-primary/25 transition-all min-h-[38px] sm:min-h-[40px] shrink-0 whitespace-nowrap"
-              >
-                <span>Acessar Painel</span>
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => openAuthModal('login')}
-                  type="button"
-                  className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold text-on-surface dark:text-slate-200 hover:bg-surface-container dark:hover:bg-slate-800 transition-colors min-h-[38px] sm:min-h-[40px] shrink-0 whitespace-nowrap"
-                >
-                  Entrar
-                </button>
+            <button
+              onClick={() => openAuthModal('login')}
+              type="button"
+              className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold text-on-surface dark:text-slate-200 hover:bg-surface-container dark:hover:bg-slate-800 transition-colors min-h-[38px] sm:min-h-[40px] shrink-0 whitespace-nowrap"
+            >
+              Entrar
+            </button>
 
-                <button
-                  onClick={() => openAuthModal('signup')}
-                  type="button"
-                  className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-md shadow-primary/25 transition-all active:scale-[0.98] min-h-[38px] sm:min-h-[40px] shrink-0 whitespace-nowrap"
-                >
-                  <span>Cadastrar</span>
-                  <span className="material-symbols-outlined text-[16px] hidden sm:inline">arrow_forward</span>
-                </button>
-              </>
-            )}
+            <button
+              onClick={() => openAuthModal('signup')}
+              type="button"
+              className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-md shadow-primary/25 transition-all active:scale-[0.98] min-h-[38px] sm:min-h-[40px] shrink-0 whitespace-nowrap"
+            >
+              <span>Cadastrar</span>
+              <span className="material-symbols-outlined text-[16px] hidden sm:inline">arrow_forward</span>
+            </button>
           </div>
         </div>
       </header>
@@ -113,25 +100,14 @@ export default function LandingPage({ theme, onThemeChange, onReturnToDashboard 
 
           {/* CTA Button */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
-            {onReturnToDashboard ? (
-              <button
-                onClick={onReturnToDashboard}
-                type="button"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm sm:text-base font-bold shadow-xl shadow-primary/30 transition-all hover:-translate-y-0.5 active:scale-[0.98] min-h-[48px]"
-              >
-                <span>Retornar ao Painel Studio</span>
-                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => openAuthModal('signup')}
-                type="button"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm sm:text-base font-bold shadow-xl shadow-primary/30 transition-all hover:-translate-y-0.5 active:scale-[0.98] min-h-[48px]"
-              >
-                <span>Criar Conta e Receber 100 Créditos</span>
-                <span className="material-symbols-outlined text-[20px]">bolt</span>
-              </button>
-            )}
+            <button
+              onClick={() => openAuthModal('signup')}
+              type="button"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm sm:text-base font-bold shadow-xl shadow-primary/30 transition-all hover:-translate-y-0.5 active:scale-[0.98] min-h-[48px]"
+            >
+              <span>Criar Conta e Receber 100 Créditos</span>
+              <span className="material-symbols-outlined text-[20px]">bolt</span>
+            </button>
           </div>
 
           {/* Metrics Bar */}

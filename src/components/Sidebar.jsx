@@ -7,7 +7,6 @@ export default function Sidebar({
   savedCount,
   isOpen,
   onClose,
-  onViewLanding,
 }) {
   const { user, openAuthModal, signOut } = useAuth();
 
@@ -142,28 +141,6 @@ export default function Sidebar({
                 </button>
               );
             })}
-
-            {/* Link para visualização da Landing Page / Apresentação */}
-            {onViewLanding && (
-              <button
-                onClick={() => {
-                  if (onClose) onClose();
-                  onViewLanding();
-                }}
-                className="w-full flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant dark:text-slate-400 hover:bg-surface-container dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-slate-100 transition-all text-left font-label-md text-label-md min-h-[44px]"
-                type="button"
-              >
-                <div className="flex items-center gap-space-sm">
-                  <span className="material-symbols-outlined text-[20px] text-primary">
-                    storefront
-                  </span>
-                  <span className="text-sm">Página Inicial</span>
-                </div>
-                <span className="material-symbols-outlined text-[16px] text-on-surface-variant/60">
-                  open_in_new
-                </span>
-              </button>
-            )}
           </nav>
         </div>
 

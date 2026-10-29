@@ -8,7 +8,6 @@ export default function Header({
   theme,
   onThemeChange,
   onShowToast,
-  onViewLanding,
 }) {
   const { user, signOut, openAuthModal, isConfigured } = useAuth();
   const [query, setQuery] = useState('');
@@ -267,18 +266,6 @@ export default function Header({
 
               {/* Menu Navigation Items */}
               <div className="space-y-1 pt-1 border-t border-surface-container dark:border-slate-700 text-xs">
-                {onViewLanding && (
-                  <button
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      onViewLanding();
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-700/60 hover:text-on-surface dark:hover:text-white transition-colors text-left font-medium"
-                  >
-                    <span className="material-symbols-outlined text-[18px] text-primary">storefront</span>
-                    <span>Página Inicial / Apresentação</span>
-                  </button>
-                )}
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);

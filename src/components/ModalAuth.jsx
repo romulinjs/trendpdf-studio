@@ -13,6 +13,10 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
 
   useEffect(() => {
     setIsSignUp(authMode === 'signup');
+    setEmail('');
+    setPassword('');
+    setName('');
+    setErrorMessage('');
   }, [authMode, isOpen]);
 
   // Close on Escape key
@@ -27,6 +31,14 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const handleToggleMode = () => {
+    setIsSignUp((prev) => !prev);
+    setEmail('');
+    setPassword('');
+    setName('');
+    setErrorMessage('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +63,7 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
             type: 'success',
             title: 'Conta criada com sucesso!',
             message: isConfigured
-              ? 'Verifique seu e-mail caso a confirmação esteja ativada no Supabase.'
+              ? 'Conta criada! Se o e-mail de confirmação estiver ativo no Supabase, verifique sua caixa de entrada.'
               : 'Usuário cadastrado com 100 créditos no ambiente local!',
           });
         }
@@ -68,9 +80,26 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
       onClose();
     } catch (err) {
       console.error('Erro de autenticação:', err);
-      setErrorMessage(
-        err.message || 'Falha ao autenticar. Verifique suas credenciais e tente novamente.'
-      );
+      const rawMsg = err.message || '';
+      const lowerMsg = rawMsg.toLowerCase();
+      if (
+        lowerMsg.includes('rate limit') ||
+        lowerMsg.includes('over_email_send_rate_limit') ||
+        lowerMsg.includes('rate_limit')
+      ) {
+        setErrorMessage(
+          'Limite de envio de e-mails do Supabase atingido. Para permitir cadastros imediatos e ilimitados sem aguardar e-mail, desative a opção "Confirm email" em Authentication > Providers > Email no painel do Supabase.'
+        );
+      } else if (
+        lowerMsg.includes('invalid login credentials') ||
+        lowerMsg.includes('invalid_grant')
+      ) {
+        setErrorMessage('E-mail ou senha incorretos. Verifique suas credenciais.');
+      } else if (lowerMsg.includes('user already registered')) {
+        setErrorMessage('Este e-mail já está cadastrado. Alterne para a opção "Entrar" abaixo.');
+      } else {
+        setErrorMessage(rawMsg || 'Falha ao autenticar. Verifique suas credenciais e tente novamente.');
+      }
     } finally {
       setLoading(false);
     }
@@ -91,7 +120,19 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
       onClose();
     } catch (err) {
       console.error('Erro ao conectar via Google:', err);
-      setErrorMessage(err.message || 'Falha ao autenticar com Google.');
+      const rawMsg = err.message || '';
+      const lowerMsg = rawMsg.toLowerCase();
+      if (
+        lowerMsg.includes('provider is not enabled') ||
+        lowerMsg.includes('unsupported provider') ||
+        lowerMsg.includes('validation_failed')
+      ) {
+        setErrorMessage(
+          'O provedor Google ainda não está ativado no painel do Supabase. Para ativá-lo, vá em Authentication > Providers > Google e adicione o Client ID do Google Cloud Console. Enquanto isso, use o cadastro por E-mail e Senha.'
+        );
+      } else {
+        setErrorMessage(rawMsg || 'Falha ao autenticar com Google.');
+      }
     } finally {
       setLoading(false);
     }
@@ -182,7 +223,7 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3.5">
+        <form onSubmit={handleSubmit} autoComplete="off" className="space-y-3.5">
           {isSignUp && (
             <div className="space-y-1">
               <label className="text-xs font-semibold text-on-surface dark:text-slate-200">
@@ -193,7 +234,8 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Carlos Eduardo"
-                className="w-full bg-surface-container-low dark:bg-slate-900/70 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                autoComplete="name"
+                className="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
             </div>
           )}
@@ -208,7 +250,8 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu.email@exemplo.com"
-              className="w-full bg-surface-container-low dark:bg-slate-900/70 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              autoComplete={isSignUp ? 'new-email' : 'email'}
+              className="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
             />
           </div>
 
@@ -223,7 +266,8 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo de 6 caracteres"
-                className="w-full bg-surface-container-low dark:bg-slate-900/70 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 pr-10 text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                className="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 pr-10 text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
               <button
                 type="button"
@@ -257,12 +301,9 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
         {/* Toggle Sign In / Sign Up */}
         <div className="text-center pt-2 border-t border-surface-container dark:border-slate-700">
           <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setErrorMessage('');
-            }}
+            onClick={handleToggleMode}
             type="button"
-            className="text-xs text-primary hover:underline font-semibold"
+            className="text-xs text-primary dark:text-indigo-400 hover:text-primary-hover dark:hover:text-indigo-300 hover:underline font-semibold transition-colors"
           >
             {isSignUp
               ? 'Já tem uma conta? Clique para entrar'

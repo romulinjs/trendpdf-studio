@@ -18,7 +18,7 @@ import { dbService } from './services/dbService';
 import { pdfService } from './services/pdfService';
 import { themeService } from './services/themeService';
 
-function MainAppContent({ theme, onThemeChange, showToast, toast, setToast, onViewLanding }) {
+function MainAppContent({ theme, onThemeChange, showToast, toast, setToast }) {
   const { user, deductAiCredit } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [trends, setTrends] = useState([]);
@@ -114,7 +114,6 @@ function MainAppContent({ theme, onThemeChange, showToast, toast, setToast, onVi
         savedCount={savedCount}
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        onViewLanding={onViewLanding}
       />
 
       {/* Main Content Area */}
@@ -127,7 +126,6 @@ function MainAppContent({ theme, onThemeChange, showToast, toast, setToast, onVi
           theme={theme}
           onThemeChange={onThemeChange}
           onShowToast={showToast}
-          onViewLanding={onViewLanding}
         />
 
         {/* Page Container with dedicated top clearance (pt-24 sm:pt-28 prevents ANY header overlap!) */}
@@ -224,7 +222,6 @@ function AppRoot() {
   const { user, loading, isAuthModalOpen, closeAuthModal } = useAuth();
   const [theme, setTheme] = useState(themeService.getTheme());
   const [toast, setToast] = useState(null);
-  const [showLandingView, setShowLandingView] = useState(false);
 
   useEffect(() => {
     const cleanupListener = themeService.initThemeListener((newTheme) => {
@@ -263,14 +260,13 @@ function AppRoot() {
     );
   }
 
-  // Se o usuário NÃO estiver logado OU solicitou visualizar a Apresentação: Exibe a Landing Page
-  if (!user || showLandingView) {
+  // Se o usuário NÃO estiver logado: Exibe a Tela de Apresentação (Landing Page)
+  if (!user) {
     return (
       <>
         <LandingPage
           theme={theme}
           onThemeChange={handleThemeChange}
-          onReturnToDashboard={user ? () => setShowLandingView(false) : null}
         />
         <ModalAuth
           isOpen={isAuthModalOpen}
@@ -291,7 +287,6 @@ function AppRoot() {
         showToast={showToast}
         toast={toast}
         setToast={setToast}
-        onViewLanding={() => setShowLandingView(true)}
       />
       <ModalAuth
         isOpen={isAuthModalOpen}
