@@ -61,9 +61,23 @@ export default function GerarIdeias({
         selectedFormat
       );
 
+      // Tratamento para retorno nulo (formato inválido, chave ausente ou falha de rede)
+      if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
+        setErrorMessage('Não foi possível gerar os conceitos no momento. Ocorreu uma instabilidade na resposta da IA ou na conexão com o Google Gemini. Por favor, tente novamente.');
+        if (onShowToast) {
+          onShowToast({
+            type: 'error',
+            title: 'Falha na Geração com IA',
+            message: 'O modelo retornou um formato inesperado ou houve falha de conexão. Por favor, tente novamente.',
+          });
+        }
+        return;
+      }
+
       // 2. Salva os dados reais retornados da API do Google no estado do componente
       setGeneratedIdeas(ideas);
       setHasGenerated(true);
+      setErrorMessage('');
 
       // 3. Deduz crédito de IA da sessão do usuário
       if (onDeductCredit) {
@@ -89,7 +103,7 @@ export default function GerarIdeias({
       } catch {}
     } catch (err) {
       console.error('Erro ao gerar ideias com Gemini:', err);
-      const msg = err?.message || 'Falha ao conectar com o serviço do Google Gemini.';
+      const msg = 'Falha ao conectar com o serviço do Google Gemini. Por favor, tente novamente.';
       setErrorMessage(msg);
       if (onShowToast) {
         onShowToast({
@@ -192,14 +206,25 @@ export default function GerarIdeias({
           </span>
         </div>
 
-        {/* Mensagem de Erro / Alerta de API */}
+        {/* Mensagem de Erro / Alerta Amigável da API */}
         {errorMessage && (
-          <div role="alert" className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs flex items-start gap-2.5 animate-fadeIn">
-            <span className="material-symbols-outlined text-[18px] text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5">error</span>
-            <div className="space-y-1">
-              <strong className="block font-semibold">Aviso da API Gemini</strong>
-              <span>{errorMessage}</span>
+          <div role="alert" className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+            <div className="flex items-start gap-2.5">
+              <span className="material-symbols-outlined text-[20px] text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5">error</span>
+              <div className="space-y-0.5">
+                <strong className="block font-semibold">Não foi possível gerar os conceitos</strong>
+                <span>{errorMessage}</span>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={isLoading}
+              className="self-start sm:self-auto px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold text-xs transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0 min-h-[36px]"
+            >
+              <span className="material-symbols-outlined text-[15px]">refresh</span>
+              <span>Tentar Novamente</span>
+            </button>
           </div>
         )}
 
