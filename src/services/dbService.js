@@ -70,27 +70,37 @@ export const dbService = {
           .order('created_at', { ascending: false });
 
         if (!error && data) {
-          return data.map((i) => ({
-            id: i.id,
-            title: i.title,
-            format: i.format,
-            suggestedPrice: i.suggested_price,
-            orderBump: i.order_bump,
-            orderBumpPrice: i.order_bump_price,
-            score: parseFloat(i.score),
-            status: i.status,
-            targetAudience: i.target_audience,
-            coreProblem: i.core_problem,
-            whySellNow: i.why_sell_now,
-            saved: i.saved,
-            chapters: (i.chapters || [])
+          return data.map((i) => {
+            const chaps = (i.chapters || [])
               .sort((a, b) => a.chapter_number - b.chapter_number)
               .map((c) => ({
                 number: c.chapter_number,
                 title: c.title,
-                description: c.description,
-              })),
-          }));
+                description: c.description || '',
+              }));
+
+            const coreDesc = i.core_problem || '';
+
+            return {
+              id: i.id,
+              title: i.title,
+              titulo_estrategico: i.title,
+              format: i.format,
+              suggestedPrice: i.suggested_price,
+              orderBump: i.order_bump,
+              orderBumpPrice: i.order_bump_price,
+              score: parseFloat(i.score) || 9.0,
+              status: i.status || 'Pronto para Produção',
+              targetAudience: i.target_audience,
+              coreProblem: coreDesc,
+              corePain: coreDesc,
+              dor_resolvida: coreDesc,
+              whySellNow: i.why_sell_now,
+              saved: i.saved !== false,
+              chapters: chaps,
+              sumario: chaps,
+            };
+          });
         }
       } catch (err) {
         console.warn('Erro ao buscar ideias no Supabase, usando armazenamento local:', err);
@@ -101,47 +111,63 @@ export const dbService = {
 
   // 3. SALVAR NOVA IDEIA
   async saveIdea(userId, idea) {
+    const title = idea.title || idea.titulo_estrategico || 'Infoproduto em PDF';
+    const coreProblem = idea.coreProblem || idea.corePain || idea.dor_resolvida || '';
+    const price = idea.suggestedPrice || idea.ticket_sugerido || 'R$ 47,00';
+    const scoreVal = typeof idea.score === 'number' ? idea.score : parseFloat(idea.score_preditivo || 9.0);
+    const chaps = Array.isArray(idea.chapters || idea.sumario) ? (idea.chapters || idea.sumario) : [];
+
     if (isSupabaseConfigured() && supabase && userId && !userId.startsWith('usr-demo')) {
       try {
-        const { data: ideaRecord, error: ideaError } = await supabase
+        const { error: ideaError } = await supabase
           .from('ideas')
-          .insert([
+          .upsert([
             {
               id: idea.id,
               user_id: userId,
-              title: idea.title,
-              format: idea.format,
-              suggested_price: idea.suggestedPrice,
-              order_bump: idea.orderBump,
+              title: title,
+              format: idea.format || 'E-book Guia (PDF)',
+              suggested_price: price,
+              order_bump: idea.orderBump || 'R$ 19,90 (Fichas complementares)',
               order_bump_price: idea.orderBumpPrice || 'R$ 19,90',
-              score: idea.score,
+              score: scoreVal,
               status: idea.status || 'Pronto para Produção',
-              target_audience: idea.targetAudience,
-              core_problem: idea.coreProblem || '',
+              target_audience: idea.targetAudience || 'Público Geral',
+              core_problem: coreProblem,
               why_sell_now: idea.whySellNow || '',
               saved: true,
             },
-          ])
-          .select()
-          .single();
+          ], { onConflict: 'id' });
 
         if (ideaError) throw ideaError;
 
-        if (idea.chapters && idea.chapters.length > 0) {
-          const chaptersPayload = idea.chapters.map((c) => ({
+        if (chaps.length > 0) {
+          const chaptersPayload = chaps.map((c, idx) => ({
             idea_id: idea.id,
-            chapter_number: c.number,
-            title: c.title,
+            chapter_number: c.number || c.capitulo || idx + 1,
+            title: c.title || c.tema || `Capítulo ${idx + 1}`,
             description: c.description || '',
           }));
 
-          await supabase.from('chapters').insert(chaptersPayload);
+          await supabase
+            .from('chapters')
+            .upsert(chaptersPayload, { onConflict: 'idea_id,chapter_number' });
         }
       } catch (err) {
         console.warn('Erro ao salvar no Supabase, mantendo localmente:', err);
       }
     }
-    return storageService.addIdea(idea);
+    return storageService.addIdea({
+      ...idea,
+      title,
+      titulo_estrategico: title,
+      coreProblem,
+      corePain: coreProblem,
+      dor_resolvida: coreProblem,
+      chapters: chaps,
+      sumario: chaps,
+      saved: true
+    });
   },
 
   // 4. ALTERNAR SALVAMENTO

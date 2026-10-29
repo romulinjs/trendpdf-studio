@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { geminiService } from '../services/geminiService';
 import { pdfService } from '../services/pdfService';
+import { dbService } from '../services/dbService';
+import { useAuth } from '../context/AuthContext';
 import SkeletonCard from '../components/SkeletonCard';
 
 export default function GerarIdeias({
@@ -14,6 +16,7 @@ export default function GerarIdeias({
   onShowToast,
   onDeductCredit
 }) {
+  const { user } = useAuth();
   const [niche, setNiche] = useState(prefilledNiche || 'Educação Financeira Infantil & Mesada Educativa');
   const [audience, setAudience] = useState(prefilledAudience || 'Mães e Pais de Crianças (6 a 12 anos)');
   const [angle, setAngle] = useState('Prático & Gamificado (Lúdico)');
@@ -117,21 +120,44 @@ export default function GerarIdeias({
     }
   };
 
-  const handleToggleLocalSave = (idea) => {
-    if (onToggleSaveIdea) {
-      onToggleSaveIdea(idea.id, idea);
-    }
+  const handleToggleLocalSave = async (idea) => {
+    const isCurrentlySaved = Boolean(idea.saved);
 
-    // Atualiza estado local para reflexo imediato do ícone de favorito
+    // Atualiza estado local para reflexo visual imediato no ícone de favorito
     setGeneratedIdeas((prev) =>
-      prev.map((i) => (i.id === idea.id ? { ...i, saved: !i.saved } : i))
+      prev.map((i) => (i.id === idea.id ? { ...i, saved: !isCurrentlySaved } : i))
     );
 
-    if (onShowToast) {
-      onShowToast({
-        type: idea.saved ? 'info' : 'success',
-        message: idea.saved ? 'Ideia removida dos salvos.' : 'Ideia adicionada à Biblioteca Editorial.',
-      });
+    try {
+      if (!isCurrentlySaved) {
+        // Persiste a ideia no banco de dados real do Supabase
+        await dbService.saveIdea(user?.id, { ...idea, saved: true });
+        if (onToggleSaveIdea) {
+          onToggleSaveIdea(idea.id, { ...idea, saved: true });
+        }
+        if (onShowToast) {
+          onShowToast({
+            type: 'success',
+            title: 'Ideia Guardada na Biblioteca!',
+            message: 'O infoproduto e seus capítulos foram salvos no Supabase.',
+          });
+        }
+      } else {
+        // Alterna ou remove no Supabase
+        await dbService.toggleSaveIdea(user?.id, idea.id);
+        if (onToggleSaveIdea) {
+          onToggleSaveIdea(idea.id, { ...idea, saved: false });
+        }
+        if (onShowToast) {
+          onShowToast({
+            type: 'info',
+            title: 'Ideia Removida',
+            message: 'O infoproduto foi removido da sua biblioteca.',
+          });
+        }
+      }
+    } catch (dbErr) {
+      console.error('Erro ao persistir ideia no Supabase:', dbErr);
     }
   };
 

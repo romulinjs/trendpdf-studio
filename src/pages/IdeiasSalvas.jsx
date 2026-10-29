@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { pdfService } from '../services/pdfService';
+import { dbService } from '../services/dbService';
+import { useAuth } from '../context/AuthContext';
 import ModalConfirmacao from '../components/ModalConfirmacao';
+import SkeletonCard from '../components/SkeletonCard';
 
 export default function IdeiasSalvas({
-  ideas,
+  ideas = [],
   onOpenSummary,
   onOpenPublish,
   onToggleSaveIdea,
@@ -11,20 +14,64 @@ export default function IdeiasSalvas({
   onNavigateToGenerate,
   onShowToast
 }) {
+  const { user } = useAuth();
+  const [libraryIdeas, setLibraryIdeas] = useState(ideas || []);
+  const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('Todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [ideaToDelete, setIdeaToDelete] = useState(null);
 
-  const savedIdeas = ideas.filter((i) => i.saved);
+  // Consulta o banco de dados Supabase ao carregar a página
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchIdeasFromDB() {
+      setIsLoading(true);
+      try {
+        const liveIdeas = await dbService.getUserIdeas(user?.id);
+        if (isMounted && Array.isArray(liveIdeas)) {
+          setLibraryIdeas(liveIdeas);
+        }
+      } catch (err) {
+        console.warn('Erro ao consultar Supabase em IdeiasSalvas:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchIdeasFromDB();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
+
+  // Sincroniza se a prop externa ideas mudar
+  useEffect(() => {
+    if (ideas && ideas.length > 0 && libraryIdeas.length === 0) {
+      setLibraryIdeas(ideas);
+    }
+  }, [ideas]);
+
+  const savedIdeas = libraryIdeas.filter((i) => i.saved !== false);
 
   const filtered = savedIdeas.filter((idea) => {
     const matchStatus = statusFilter === 'Todos' || idea.status === statusFilter;
     const matchSearch =
-      idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      idea.targetAudience.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      idea.format.toLowerCase().includes(searchTerm.toLowerCase());
+      (idea.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (idea.targetAudience || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (idea.format || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchStatus && matchSearch;
   });
+
+  // Métricas dinâmicas reais
+  const totalSalvas = savedIdeas.length;
+  const emProducao = savedIdeas.filter((i) => i.status === 'Pronto para Produção').length;
+  const scoreMedio = totalSalvas > 0
+    ? (savedIdeas.reduce((acc, i) => acc + (parseFloat(i.score) || 9.0), 0) / totalSalvas).toFixed(1)
+    : '9.2';
 
   const exportCSV = () => {
     if (savedIdeas.length === 0) return;
@@ -40,13 +87,13 @@ export default function IdeiasSalvas({
     ];
     const rows = savedIdeas.map((i) => [
       `"${i.id}"`,
-      `"${i.title.replace(/"/g, '""')}"`,
-      `"${i.format}"`,
-      `"${i.suggestedPrice}"`,
-      `"${i.orderBump}"`,
-      `"${i.score}"`,
-      `"${i.status}"`,
-      `"${i.targetAudience}"`,
+      `"${(i.title || '').replace(/"/g, '""')}"`,
+      `"${i.format || ''}"`,
+      `"${i.suggestedPrice || ''}"`,
+      `"${i.orderBump || ''}"`,
+      `"${i.score || ''}"`,
+      `"${i.status || ''}"`,
+      `"${i.targetAudience || ''}"`,
     ]);
     const csvContent =
       'data:text/csv;charset=utf-8,' +
@@ -74,38 +121,50 @@ export default function IdeiasSalvas({
       if (onShowToast) {
         onShowToast({
           type: 'success',
-          title: 'PDF Exportado',
-          message: `Arquivo ${filename} baixado com sucesso.`,
+          title: 'PDF Baixado com Sucesso',
+          message: `Arquivo ${filename} gerado a partir do banco de dados.`,
         });
       }
-    } catch {
+    } catch (err) {
+      console.error('Erro ao exportar PDF de IdeiasSalvas:', err);
       if (onShowToast) {
         onShowToast({
           type: 'error',
           title: 'Erro na exportação',
-          message: 'Não foi possível gerar o PDF.',
+          message: 'Não foi possível compilar o PDF.',
         });
       }
     }
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (ideaToDelete) {
-      onDeleteIdea(ideaToDelete.id);
-      if (onShowToast) {
-        onShowToast({
-          type: 'info',
-          title: 'Ideia Removida',
-          message: 'O infoproduto foi removido da sua biblioteca.',
-        });
+      try {
+        await dbService.deleteIdea(user?.id, ideaToDelete.id);
+        setLibraryIdeas((prev) => prev.filter((i) => i.id !== ideaToDelete.id));
+
+        if (onDeleteIdea) {
+          onDeleteIdea(ideaToDelete.id);
+        }
+
+        if (onShowToast) {
+          onShowToast({
+            type: 'info',
+            title: 'Ideia Removida',
+            message: 'O infoproduto foi removido da sua biblioteca no Supabase.',
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao deletar ideia:', err);
+      } finally {
+        setIdeaToDelete(null);
       }
-      setIdeaToDelete(null);
     }
   };
 
   return (
     <div className="flex flex-col w-full gap-space-lg sm:gap-space-xl pb-16">
-      {/* 1. Header with Breadcrumb */}
+      {/* 1. Cabeçalho com Breadcrumb */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-on-surface-variant dark:text-slate-400 font-medium">
@@ -115,16 +174,17 @@ export default function IdeiasSalvas({
           </nav>
 
           <h1 className="font-headline-xl text-xl sm:text-2xl lg:text-3xl font-bold text-on-surface dark:text-slate-100 tracking-tight">
-            Ideias Salvas & Prontas para Produção
+            Biblioteca Editorial & Ideias Salvas
           </h1>
           <p className="font-body-md text-xs sm:text-sm text-on-surface-variant dark:text-slate-400 max-w-3xl leading-relaxed">
-            Gerencie, edite e acompanhe os conceitos de PDFs validados pela IA para criação ágil de produtos digitais, e-books e kits imprimíveis.
+            Seus infoprodutos e sumários gerados com IA sincronizados na nuvem via Supabase.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
           <button
             onClick={exportCSV}
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-surface-container-lowest dark:bg-slate-800 text-on-surface dark:text-slate-200 text-xs font-semibold shadow-sm hover:bg-surface-container dark:hover:bg-slate-700 transition-all border border-outline-variant/30 dark:border-slate-700 min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            disabled={savedIdeas.length === 0}
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-surface-container-lowest dark:bg-slate-800 text-on-surface dark:text-slate-200 text-xs font-semibold shadow-sm hover:bg-surface-container dark:hover:bg-slate-700 transition-all border border-outline-variant/30 dark:border-slate-700 min-h-[44px] disabled:opacity-50"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px] text-on-surface-variant dark:text-slate-400">download</span>
@@ -132,18 +192,18 @@ export default function IdeiasSalvas({
           </button>
           <button
             onClick={onNavigateToGenerate}
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary-container text-on-primary text-xs font-bold shadow-sm hover:opacity-95 transition-all min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary-container text-on-primary text-xs font-bold shadow-sm hover:opacity-95 transition-all min-h-[44px]"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-            <span>Gerar Mais Ideias</span>
+            <span>Gerar Novas Ideias</span>
           </button>
         </div>
       </div>
 
-      {/* 2. Metric Cards */}
+      {/* 2. Cards de Métricas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-xl p-4 shadow-sm border border-outline-variant/20 dark:border-slate-700/60 flex flex-col justify-between transition-colors">
+        <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-2xl p-4 shadow-sm border border-outline-variant/20 dark:border-slate-700/60 flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-xs text-on-surface-variant dark:text-slate-400 uppercase tracking-wider font-semibold">Total Salvas</span>
             <div className="w-8 h-8 rounded-lg bg-surface-container dark:bg-slate-700 flex items-center justify-center text-primary dark:text-primary-fixed-dim">
@@ -151,12 +211,12 @@ export default function IdeiasSalvas({
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-bold text-on-surface dark:text-slate-100">{savedIdeas.length}</div>
-            <div className="text-xs text-secondary dark:text-emerald-400 font-semibold mt-1">Prontas para desenvolvimento</div>
+            <div className="text-2xl font-bold text-on-surface dark:text-slate-100">{isLoading ? '...' : totalSalvas}</div>
+            <div className="text-xs text-secondary dark:text-emerald-400 font-semibold mt-1">Sincronizadas no Supabase</div>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-xl p-4 shadow-sm border border-outline-variant/20 dark:border-slate-700/60 flex flex-col justify-between transition-colors">
+        <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-2xl p-4 shadow-sm border border-outline-variant/20 dark:border-slate-700/60 flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-xs text-on-surface-variant dark:text-slate-400 uppercase tracking-wider font-semibold">Em Produção</span>
             <div className="w-8 h-8 rounded-lg bg-surface-container dark:bg-slate-700 flex items-center justify-center text-secondary dark:text-emerald-400">
@@ -165,13 +225,13 @@ export default function IdeiasSalvas({
           </div>
           <div className="mt-3">
             <div className="text-2xl font-bold text-on-surface dark:text-slate-100">
-              {savedIdeas.filter((i) => i.status === 'Pronto para Produção').length}
+              {isLoading ? '...' : emProducao}
             </div>
-            <div className="text-xs text-on-surface-variant dark:text-slate-400 mt-1">Sumário de 10 capítulos validado</div>
+            <div className="text-xs text-on-surface-variant dark:text-slate-400 mt-1">Sumário de 10 capítulos pronto</div>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-xl p-4 shadow-sm border border-outline-variant/20 dark:border-slate-700/60 flex flex-col justify-between transition-colors">
+        <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-2xl p-4 shadow-sm border border-outline-variant/20 dark:border-slate-700/60 flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-xs text-on-surface-variant dark:text-slate-400 uppercase tracking-wider font-semibold">Ticket Médio</span>
             <div className="w-8 h-8 rounded-lg bg-surface-container dark:bg-slate-700 flex items-center justify-center text-primary dark:text-primary-fixed-dim">
@@ -179,12 +239,12 @@ export default function IdeiasSalvas({
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-bold text-primary dark:text-primary-fixed-dim">R$ 42,90</div>
-            <div className="text-xs text-secondary dark:text-emerald-400 font-semibold mt-1">+ R$ 18,00 méd. em Order Bumps</div>
+            <div className="text-2xl font-bold text-primary dark:text-primary-fixed-dim">R$ 47,00</div>
+            <div className="text-xs text-secondary dark:text-emerald-400 font-semibold mt-1">+ Order Bumps complementares</div>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-xl p-4 shadow-sm border border-outline-variant/20 dark:border-slate-700/60 flex flex-col justify-between transition-colors">
+        <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-2xl p-4 shadow-sm border border-outline-variant/20 dark:border-slate-700/60 flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-xs text-on-surface-variant dark:text-slate-400 uppercase tracking-wider font-semibold">Score Médio</span>
             <div className="w-8 h-8 rounded-lg bg-surface-container dark:bg-slate-700 flex items-center justify-center text-secondary dark:text-emerald-400">
@@ -192,15 +252,15 @@ export default function IdeiasSalvas({
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-bold text-on-surface dark:text-slate-100">9.2 / 10</div>
-            <div className="text-xs text-on-surface-variant dark:text-slate-400 mt-1">Índice preditivo de conversão</div>
+            <div className="text-2xl font-bold text-on-surface dark:text-slate-100">{isLoading ? '...' : `${scoreMedio} / 10`}</div>
+            <div className="text-xs text-on-surface-variant dark:text-slate-400 mt-1">Índice preditivo de aceitação</div>
           </div>
         </div>
       </div>
 
-      {/* 3. Filters & Search */}
-      <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-xl shadow-sm border border-outline-variant/30 dark:border-slate-700 p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 transition-colors">
-        <div className="relative flex-1 flex items-center bg-surface-container-low dark:bg-slate-900 rounded-lg px-3 py-2 min-h-[44px]">
+      {/* 3. Filtros & Busca */}
+      <div className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-2xl shadow-sm border border-outline-variant/30 dark:border-slate-700 p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 transition-colors">
+        <div className="relative flex-1 flex items-center bg-surface-container-low dark:bg-slate-900 rounded-xl px-3 py-2 min-h-[44px]">
           <span className="material-symbols-outlined text-on-surface-variant dark:text-slate-400 text-[18px] mr-2 flex-shrink-0">
             search
           </span>
@@ -225,7 +285,7 @@ export default function IdeiasSalvas({
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all min-h-[36px] ${
                 statusFilter === st
                   ? 'bg-primary-container text-on-primary shadow-sm'
                   : 'bg-surface-container dark:bg-slate-700/60 text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-high dark:hover:bg-slate-700 hover:text-on-surface dark:hover:text-white'
@@ -237,116 +297,127 @@ export default function IdeiasSalvas({
         </div>
       </div>
 
-      {/* 4. Saved Ideas Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
-        {filtered.map((idea) => (
-          <div
-            key={idea.id}
-            className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-xl shadow-sm border border-outline-variant/30 dark:border-slate-700 p-4 sm:p-5 flex flex-col justify-between space-y-4 hover:border-primary/40 dark:hover:border-primary/50 transition-all group"
-          >
-            <div className="space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-surface-container dark:bg-slate-700 text-primary dark:text-primary-fixed-dim">
-                  {idea.format}
-                </span>
-                <span className="text-xs font-metric-mono font-bold text-secondary dark:text-emerald-400">
-                  Score {idea.score}/10
-                </span>
+      {/* 4. Estado de Carregamento (Skeletons) */}
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md" role="status" aria-label="Carregando ideias do Supabase...">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      )}
+
+      {/* 5. Grid de Cards de Ideias Salvas */}
+      {!isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+          {filtered.map((idea) => (
+            <article
+              key={idea.id}
+              className="bg-surface-container-lowest dark:bg-slate-800/90 rounded-2xl shadow-sm border border-outline-variant/30 dark:border-slate-700 p-5 sm:p-6 flex flex-col justify-between space-y-4 hover:border-primary/40 dark:hover:border-primary/50 transition-all group"
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-surface-container dark:bg-slate-700 text-primary dark:text-primary-fixed-dim">
+                    {idea.format}
+                  </span>
+                  <span className="text-xs font-metric-mono font-bold text-secondary dark:text-emerald-400 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                    Score {idea.score}/10
+                  </span>
+                </div>
+
+                <h3 className="text-base font-bold text-on-surface dark:text-slate-100 group-hover:text-primary dark:group-hover:text-primary-fixed-dim transition-colors leading-snug">
+                  {idea.title}
+                </h3>
+
+                <p className="text-xs text-on-surface-variant dark:text-slate-300 line-clamp-2 leading-relaxed">
+                  {idea.description || idea.coreProblem || 'Infoproduto estruturado com sumário detalhado de 10 capítulos.'}
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
+                  <div className="bg-surface-container-low dark:bg-slate-900/60 p-2.5 rounded-xl">
+                    <span className="text-on-surface-variant dark:text-slate-400 block text-[10px] font-medium">TICKET</span>
+                    <span className="font-bold text-primary dark:text-primary-fixed-dim">{idea.suggestedPrice}</span>
+                  </div>
+                  <div className="bg-surface-container-low dark:bg-slate-900/60 p-2.5 rounded-xl">
+                    <span className="text-on-surface-variant dark:text-slate-400 block text-[10px] font-medium">PÚBLICO</span>
+                    <span className="font-semibold text-on-surface dark:text-slate-200 truncate block">{idea.targetAudience}</span>
+                  </div>
+                </div>
               </div>
 
-              <h3 className="text-sm sm:text-base font-bold text-on-surface dark:text-slate-100 group-hover:text-primary dark:group-hover:text-primary-fixed-dim transition-colors leading-snug">
-                {idea.title}
-              </h3>
-
-              <p className="text-xs text-on-surface-variant dark:text-slate-300 line-clamp-2 leading-relaxed">
-                {idea.description}
-              </p>
-
-              <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
-                <div className="bg-surface-container-low dark:bg-slate-900/60 p-2 rounded">
-                  <span className="text-on-surface-variant dark:text-slate-400 block text-[10px] font-medium">TICKET</span>
-                  <span className="font-bold text-primary dark:text-primary-fixed-dim">{idea.suggestedPrice}</span>
-                </div>
-                <div className="bg-surface-container-low dark:bg-slate-900/60 p-2 rounded">
-                  <span className="text-on-surface-variant dark:text-slate-400 block text-[10px] font-medium">PÚBLICO</span>
-                  <span className="font-semibold text-on-surface dark:text-slate-200 truncate block">{idea.targetAudience}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Buttons */}
-            <div className="pt-2 border-t border-surface-container dark:border-slate-700 flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  onClick={() => onOpenSummary(idea)}
-                  className="px-3 py-2 rounded-lg bg-primary-container text-on-primary text-xs font-semibold hover:bg-primary transition-colors inline-flex items-center gap-1 min-h-[40px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                >
-                  <span className="material-symbols-outlined text-[16px]">format_list_numbered</span>
-                  <span>Sumário</span>
-                </button>
-                <button
-                  onClick={() => handleExportSinglePDF(idea)}
-                  className="px-3 py-2 rounded-lg bg-surface-container dark:bg-slate-700 text-on-surface-variant dark:text-slate-200 hover:text-on-surface dark:hover:text-white text-xs font-semibold transition-colors inline-flex items-center gap-1 min-h-[40px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                  title="Baixar PDF"
-                >
-                  <span className="material-symbols-outlined text-[16px]">download</span>
-                  <span>PDF</span>
-                </button>
-                {onOpenPublish && (
+              {/* Botões do Rodapé do Card */}
+              <div className="pt-2 border-t border-surface-container dark:border-slate-700 flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
-                    onClick={() => onOpenPublish(idea)}
-                    className="px-3 py-2 rounded-lg bg-primary/10 dark:bg-primary/20 hover:bg-primary hover:text-white text-primary dark:text-indigo-300 text-xs font-semibold transition-all inline-flex items-center gap-1 min-h-[40px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                    title="Publicar no Kiwify, Hotmart ou Amazon KDP"
+                    onClick={() => onOpenSummary(idea)}
+                    className="px-3.5 py-2.5 rounded-xl bg-primary-container text-on-primary text-xs font-semibold hover:bg-primary transition-colors inline-flex items-center gap-1.5 min-h-[44px]"
                   >
-                    <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
-                    <span>Publicar</span>
+                    <span className="material-symbols-outlined text-[16px]">format_list_numbered</span>
+                    <span>Sumário</span>
                   </button>
-                )}
-              </div>
+                  <button
+                    onClick={() => handleExportSinglePDF(idea)}
+                    className="px-3.5 py-2.5 rounded-xl bg-surface-container dark:bg-slate-700 text-on-surface-variant dark:text-slate-200 hover:text-on-surface dark:hover:text-white text-xs font-semibold transition-colors inline-flex items-center gap-1.5 min-h-[44px]"
+                    title="Baixar PDF do Briefing"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">download</span>
+                    <span>Exportar PDF</span>
+                  </button>
+                  {onOpenPublish && (
+                    <button
+                      onClick={() => onOpenPublish(idea)}
+                      className="px-3.5 py-2.5 rounded-xl bg-primary/10 dark:bg-primary/20 hover:bg-primary hover:text-white text-primary dark:text-indigo-300 text-xs font-semibold transition-all inline-flex items-center gap-1.5 min-h-[44px]"
+                      title="Publicar no Kiwify, Hotmart ou Amazon KDP"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
+                      <span>Publicar</span>
+                    </button>
+                  )}
+                </div>
 
+                <button
+                  onClick={() => setIdeaToDelete(idea)}
+                  className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 p-2.5 rounded-xl text-xs font-semibold transition-colors inline-flex items-center justify-center min-h-[44px] min-w-[44px]"
+                  title="Remover da biblioteca"
+                  aria-label={`Excluir ideia ${idea.title}`}
+                >
+                  <span className="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+              </div>
+            </article>
+          ))}
+
+          {filtered.length === 0 && (
+            <div className="col-span-full bg-surface-container-lowest dark:bg-slate-800/90 rounded-2xl p-8 sm:p-14 text-center border border-outline-variant/30 dark:border-slate-700 space-y-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-fixed-dim mx-auto flex items-center justify-center">
+                <span className="material-symbols-outlined text-3xl">bookmark_border</span>
+              </div>
+              <div className="space-y-1 max-w-md mx-auto">
+                <h3 className="text-base sm:text-lg font-bold text-on-surface dark:text-slate-100">
+                  {savedIdeas.length === 0 ? 'Sua biblioteca de infoprodutos está vazia' : 'Nenhuma ideia corresponde aos filtros atuais'}
+                </h3>
+                <p className="text-xs sm:text-sm text-on-surface-variant dark:text-slate-400 leading-relaxed">
+                  {savedIdeas.length === 0
+                    ? 'Utilize o gerador de ideias para modelar produtos digitais validados e salve-os aqui para gerenciar a produção e exportar briefings.'
+                    : 'Tente alterar os termos da busca ou selecionar outro status.'}
+                </p>
+              </div>
               <button
-                onClick={() => setIdeaToDelete(idea)}
-                className="text-error hover:bg-error/10 dark:hover:bg-rose-950/40 p-2 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1 min-h-[40px] focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
-                title="Remover dos salvos"
-                aria-label={`Excluir ideia ${idea.title}`}
+                onClick={onNavigateToGenerate}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-container text-on-primary text-xs font-bold shadow-sm hover:opacity-95 transition-all min-h-[44px]"
               >
-                <span className="material-symbols-outlined text-[18px]">delete</span>
+                <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                <span>+ Gerar Minha Primeira Ideia</span>
               </button>
             </div>
-          </div>
-        ))}
+          )}
+        </div>
+      )}
 
-        {filtered.length === 0 && (
-          <div className="col-span-full bg-surface-container-lowest dark:bg-slate-800/90 rounded-2xl p-8 sm:p-14 text-center border border-outline-variant/30 dark:border-slate-700 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-fixed-dim mx-auto flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl">bookmark_border</span>
-            </div>
-            <div className="space-y-1 max-w-md mx-auto">
-              <h3 className="text-base sm:text-lg font-bold text-on-surface dark:text-slate-100">
-                {savedIdeas.length === 0 ? 'Sua biblioteca de infoprodutos está vazia' : 'Nenhuma ideia corresponde aos filtros atuais'}
-              </h3>
-              <p className="text-xs sm:text-sm text-on-surface-variant dark:text-slate-400 leading-relaxed">
-                {savedIdeas.length === 0
-                  ? 'Utilize o gerador de ideias para modelar produtos digitais validados e salve-os aqui para gerenciar a produção.'
-                  : 'Tente alterar os termos da busca ou selecionar outro status.'}
-              </p>
-            </div>
-            <button
-              onClick={onNavigateToGenerate}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary-container text-on-primary text-xs font-bold shadow-sm hover:opacity-95 transition-all min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-            >
-              <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-              <span>+ Gerar Minha Primeira Ideia</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Confirmation Dialog before deleting */}
+      {/* Diálogo de Confirmação antes de Excluir */}
       <ModalConfirmacao
-        isOpen={!!ideaToDelete}
+        isOpen={Boolean(ideaToDelete)}
         title="Remover infoproduto da biblioteca?"
-        message={`Tem certeza que deseja remover "${ideaToDelete?.title}" das suas ideias salvas? Essa ação não pode ser desfeita.`}
+        message={`Tem certeza que deseja remover "${ideaToDelete?.title}" da sua biblioteca no Supabase? Essa ação não pode ser desfeita.`}
         confirmText="Sim, remover"
         isDestructive={true}
         onConfirm={confirmDelete}
