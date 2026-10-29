@@ -3,17 +3,6 @@ import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 
 const AuthContext = createContext(null);
 
-export const DEMO_USER_PROFILE = {
-  id: 'usr-demo-ana-martins',
-  email: 'ana.martins@trendpdf.studio',
-  name: 'Ana Martins',
-  avatarUrl: null,
-  plan: 'pro',
-  aiCreditsBalance: 84,
-  aiCreditsUsed: 16,
-  isDemo: true,
-};
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
@@ -22,11 +11,24 @@ export function AuthProvider({ children }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
   const configured = isSupabaseConfigured();
 
-  // Carrega a sessão inicial salva
+  // Carrega a sessão inicial do Supabase
   useEffect(() => {
     let mounted = true;
 
     async function initAuth() {
+      // 1. Purga imediata de qualquer resquício de usuário demo salvo em cache anterior
+      try {
+        const rawSaved = localStorage.getItem('trendpdf_current_user');
+        if (rawSaved) {
+          const parsed = JSON.parse(rawSaved);
+          if (parsed?.isDemo || parsed?.id?.includes('demo')) {
+            localStorage.removeItem('trendpdf_current_user');
+          }
+        }
+      } catch {
+        localStorage.removeItem('trendpdf_current_user');
+      }
+
       if (configured && supabase) {
         try {
           const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -34,26 +36,34 @@ export function AuthProvider({ children }) {
             setSession(currentSession);
             await fetchUserProfile(currentSession.user);
           } else if (mounted) {
-            // Verifica se havia um usuário salvo localmente
-            const savedUser = localStorage.getItem('trendpdf_current_user');
-            if (savedUser) {
-              setUser(JSON.parse(savedUser));
-            } else {
-              setUser(null); // Não autenticado -> exibe Landing Page
-            }
+            // Sem sessão ativa no Supabase -> SEMPRE exibe a Landing Page
+            localStorage.removeItem('trendpdf_current_user');
+            setSession(null);
+            setUser(null);
           }
         } catch (err) {
           console.warn('Erro ao conectar ao Supabase Auth:', err);
           if (mounted) {
-            const savedUser = localStorage.getItem('trendpdf_current_user');
-            setUser(savedUser ? JSON.parse(savedUser) : null);
+            localStorage.removeItem('trendpdf_current_user');
+            setSession(null);
+            setUser(null);
           }
         }
       } else {
-        // Modo Local
-        const savedUser = localStorage.getItem('trendpdf_current_user');
+        // Modo Local (sem Supabase configurado)
         if (mounted) {
-          setUser(savedUser ? JSON.parse(savedUser) : null);
+          const savedUser = localStorage.getItem('trendpdf_current_user');
+          if (savedUser) {
+            const parsed = JSON.parse(savedUser);
+            if (!parsed?.isDemo) {
+              setUser(parsed);
+            } else {
+              localStorage.removeItem('trendpdf_current_user');
+              setUser(null);
+            }
+          } else {
+            setUser(null);
+          }
         }
       }
 
@@ -70,6 +80,7 @@ export function AuthProvider({ children }) {
         if (currentSession?.user) {
           await fetchUserProfile(currentSession.user);
         } else {
+          localStorage.removeItem('trendpdf_current_user');
           setUser(null);
         }
       });
@@ -209,13 +220,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // 4. Acesso Rápido em Modo Demonstração
-  const loginAsDemo = () => {
-    setUser(DEMO_USER_PROFILE);
-    localStorage.setItem('trendpdf_current_user', JSON.stringify(DEMO_USER_PROFILE));
-  };
-
-  // 5. Logout / Desconectar
+  // 4. Logout / Desconectar
   const signOut = async () => {
     if (configured && supabase) {
       try {
@@ -229,7 +234,7 @@ export function AuthProvider({ children }) {
     setSession(null);
   };
 
-  // 6. Deduzir Crédito de IA (após geração preditiva)
+  // 5. Deduzir Crédito de IA (após geração preditiva)
   const deductAiCredit = async (amount = 1) => {
     if (!user) return;
 
@@ -288,7 +293,6 @@ export function AuthProvider({ children }) {
         signInWithEmail,
         signUpWithEmail,
         signInWithGoogle,
-        loginAsDemo,
         signOut,
         deductAiCredit,
         isAuthModalOpen,

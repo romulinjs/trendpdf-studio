@@ -185,7 +185,7 @@ export default function GerarIdeias({
                     setNiche(e.target.value);
                     if (errorMessage) setErrorMessage('');
                   }}
-                  className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-xs sm:text-sm pl-9 pr-4 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all border border-transparent focus:border-outline-variant/40 dark:focus:border-slate-700 min-h-[44px]"
+                  className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-base sm:text-sm pl-9 pr-4 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all border border-transparent focus:border-outline-variant/40 dark:focus:border-slate-700 min-h-[44px]"
                   placeholder="Ex: Finanças para Autônomos, Ansiedade em Concursos..."
                   type="text"
                   required
@@ -206,7 +206,7 @@ export default function GerarIdeias({
                   id="select-publico"
                   value={audience}
                   onChange={(e) => setAudience(e.target.value)}
-                  className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-xs sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer border border-transparent focus:border-outline-variant/40 dark:focus:border-slate-700 appearance-none pr-8 min-h-[44px]"
+                  className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-base sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer border border-transparent focus:border-outline-variant/40 dark:focus:border-slate-700 appearance-none pr-8 min-h-[44px]"
                 >
                   <option>Mães e Pais de Crianças (6 a 12 anos)</option>
                   <option>Pais de primeira viagem (0 a 3 anos)</option>
@@ -234,7 +234,7 @@ export default function GerarIdeias({
                   id="select-angulo"
                   value={angle}
                   onChange={(e) => setAngle(e.target.value)}
-                  className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-xs sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer border border-transparent focus:border-outline-variant/40 dark:focus:border-slate-700 appearance-none pr-8 min-h-[44px]"
+                  className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-base sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer border border-transparent focus:border-outline-variant/40 dark:focus:border-slate-700 appearance-none pr-8 min-h-[44px]"
                 >
                   <option>Prático & Gamificado (Lúdico)</option>
                   <option>Iniciante / Passo a Passo Direto</option>

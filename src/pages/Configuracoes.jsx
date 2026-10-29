@@ -229,7 +229,7 @@ export default function Configuracoes({ onResetAllData, onShowToast, theme, onTh
                 placeholder="Ex: AIzaSyD..."
                 value={settings.geminiApiKey || ''}
                 onChange={(e) => setSettings({ ...settings, geminiApiKey: e.target.value })}
-                className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-xs sm:text-sm px-3 py-2.5 pr-10 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 border border-outline-variant/40 dark:border-slate-700 font-mono transition-all min-h-[44px]"
+                className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-base sm:text-sm px-3 py-2.5 pr-10 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 border border-outline-variant/40 dark:border-slate-700 font-mono transition-all min-h-[44px]"
               />
               <button
                 type="button"
@@ -274,7 +274,7 @@ export default function Configuracoes({ onResetAllData, onShowToast, theme, onTh
                 type="text"
                 value={settings.userName || ''}
                 onChange={(e) => setSettings({ ...settings, userName: e.target.value })}
-                className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-xs sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 border border-outline-variant/40 dark:border-slate-700 transition-all min-h-[44px]"
+                className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-base sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 border border-outline-variant/40 dark:border-slate-700 transition-all min-h-[44px]"
               />
             </div>
             <div className="space-y-1.5">
@@ -286,7 +286,7 @@ export default function Configuracoes({ onResetAllData, onShowToast, theme, onTh
                 type="text"
                 disabled
                 value={user?.plan === 'enterprise' ? 'Plano Enterprise' : 'Plano Pro'}
-                className="w-full bg-surface-container dark:bg-slate-900/60 text-on-surface-variant dark:text-slate-400 text-xs sm:text-sm px-3 py-2.5 rounded-lg outline-none cursor-not-allowed opacity-80 border border-outline-variant/20 dark:border-slate-700 min-h-[44px]"
+                className="w-full bg-surface-container dark:bg-slate-900/60 text-on-surface-variant dark:text-slate-400 text-base sm:text-sm px-3 py-2.5 rounded-lg outline-none cursor-not-allowed opacity-80 border border-outline-variant/20 dark:border-slate-700 min-h-[44px]"
               />
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function Configuracoes({ onResetAllData, onShowToast, theme, onTh
                 id="currency-select"
                 value={settings.currency || 'BRL'}
                 onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
-                className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-xs sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 border border-outline-variant/40 dark:border-slate-700 cursor-pointer min-h-[44px]"
+                className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-base sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 border border-outline-variant/40 dark:border-slate-700 cursor-pointer min-h-[44px]"
               >
                 <option value="BRL">Real Brasileiro (R$)</option>
                 <option value="USD">Dólar Americano ($)</option>
@@ -333,7 +333,7 @@ export default function Configuracoes({ onResetAllData, onShowToast, theme, onTh
                 id="page-count-select"
                 value={settings.defaultPageCount || '30-50'}
                 onChange={(e) => setSettings({ ...settings, defaultPageCount: e.target.value })}
-                className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-xs sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 border border-outline-variant/40 dark:border-slate-700 cursor-pointer min-h-[44px]"
+                className="w-full bg-surface-container-low dark:bg-slate-900 text-on-surface dark:text-slate-100 text-base sm:text-sm px-3 py-2.5 rounded-lg outline-none focus:bg-surface-container-lowest dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 border border-outline-variant/40 dark:border-slate-700 cursor-pointer min-h-[44px]"
               >
                 <option value="15-30">Micro-guia (15 a 30 páginas)</option>
                 <option value="30-50">Guia Prático Padrão (30 a 50 páginas)</option>

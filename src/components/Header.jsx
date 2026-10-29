@@ -7,7 +7,8 @@ export default function Header({
   onNavigate,
   theme,
   onThemeChange,
-  onShowToast
+  onShowToast,
+  onViewLanding,
 }) {
   const { user, signOut, openAuthModal, isConfigured } = useAuth();
   const [query, setQuery] = useState('');
@@ -64,7 +65,7 @@ export default function Header({
   const creditsPercentage = Math.min(100, Math.max(0, creditsBalance));
 
   return (
-    <header className="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-outline-variant/20 dark:border-slate-800 z-40 px-4 sm:px-6 lg:px-space-lg flex items-center justify-between gap-3 transition-colors">
+    <header className="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-surface dark:bg-[#0b0f19] border-b border-outline-variant/30 dark:border-slate-800 z-40 px-3 sm:px-6 lg:px-space-lg flex items-center justify-between gap-2 sm:gap-3 transition-colors">
       {/* Mobile Hamburger & Search */}
       <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-xl">
         {/* Hamburger Menu Toggle (Mobile Only) */}
@@ -86,7 +87,7 @@ export default function Header({
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full min-w-0 bg-transparent border-none outline-none font-body-sm text-xs sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500"
+              className="w-full min-w-0 bg-transparent border-none outline-none font-body-sm text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500"
               placeholder="Buscar mercados, nichos, palavras-chave..."
               type="text"
             />
@@ -266,6 +267,18 @@ export default function Header({
 
               {/* Menu Navigation Items */}
               <div className="space-y-1 pt-1 border-t border-surface-container dark:border-slate-700 text-xs">
+                {onViewLanding && (
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      onViewLanding();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-700/60 hover:text-on-surface dark:hover:text-white transition-colors text-left font-medium"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-primary">storefront</span>
+                    <span>Página Inicial / Apresentação</span>
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);

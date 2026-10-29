@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function ModalAuth({ isOpen, onClose, onShowToast }) {
-  const { signInWithEmail, signUpWithEmail, signInWithGoogle, isConfigured, authMode, loginAsDemo } = useAuth();
+  const { signInWithEmail, signUpWithEmail, signInWithGoogle, isConfigured, authMode } = useAuth();
   const [isSignUp, setIsSignUp] = useState(authMode === 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -132,8 +132,8 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
 
         {/* Cloud / Local Badge */}
         <div className="flex items-center justify-center gap-1.5 py-1 px-3 rounded-full bg-surface-container dark:bg-slate-700/60 text-[11px] text-on-surface-variant dark:text-slate-300 w-max mx-auto font-medium">
-          <span className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-secondary animate-pulse' : 'bg-amber-400'}`}></span>
-          <span>{isConfigured ? 'Supabase PostgreSQL Conectado' : 'Modo Demonstração Local Ativo'}</span>
+          <span className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-secondary animate-pulse' : 'bg-primary'}`}></span>
+          <span>{isConfigured ? 'Supabase PostgreSQL Conectado' : 'Autenticação de Usuário'}</span>
         </div>
 
         {/* Google OAuth Button */}
@@ -162,26 +162,6 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
             />
           </svg>
           <span>Continuar com o Google</span>
-        </button>
-
-        {/* Demo Login Button */}
-        <button
-          onClick={() => {
-            loginAsDemo();
-            if (onShowToast) {
-              onShowToast({
-                type: 'info',
-                title: 'Modo Demonstração',
-                message: 'Você entrou como Ana Martins (Plano Pro com 84 créditos).',
-              });
-            }
-            onClose();
-          }}
-          type="button"
-          className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl border border-outline-variant/30 dark:border-slate-700 bg-surface-container dark:bg-slate-800 hover:bg-surface-container-high dark:hover:bg-slate-700 text-xs font-semibold text-on-surface dark:text-slate-200 transition-colors"
-        >
-          <span className="material-symbols-outlined text-[16px] text-primary">play_circle</span>
-          <span>Acessar Demonstração Rápida (1 Clique)</span>
         </button>
 
         {/* Divider */}
@@ -213,7 +193,7 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Carlos Eduardo"
-                className="w-full bg-surface-container-low dark:bg-slate-900/70 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                className="w-full bg-surface-container-low dark:bg-slate-900/70 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
             </div>
           )}
@@ -228,7 +208,7 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu.email@exemplo.com"
-              className="w-full bg-surface-container-low dark:bg-slate-900/70 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              className="w-full bg-surface-container-low dark:bg-slate-900/70 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
             />
           </div>
 
@@ -243,7 +223,7 @@ export default function ModalAuth({ isOpen, onClose, onShowToast }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo de 6 caracteres"
-                className="w-full bg-surface-container-low dark:bg-slate-900/70 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 pr-10 text-xs sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                className="w-full bg-surface-container-low dark:bg-slate-900/70 border border-outline-variant/40 dark:border-slate-700 rounded-xl px-3.5 py-2 pr-10 text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
               <button
                 type="button"

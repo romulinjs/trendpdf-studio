@@ -67,7 +67,7 @@ export default function Dashboard({
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full min-w-0 bg-transparent border-0 outline-none text-xs sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500"
+              className="w-full min-w-0 bg-transparent border-0 outline-none text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500"
               placeholder="Buscar nicho, palavra-chave ou problema (ex: Gestão de tempo, Finanças infantis, Micro-SaaS)..."
               type="text"
             />

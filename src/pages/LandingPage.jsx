@@ -1,31 +1,31 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function LandingPage({ theme, onThemeChange }) {
-  const { openAuthModal, loginAsDemo } = useAuth();
+export default function LandingPage({ theme, onThemeChange, onReturnToDashboard }) {
+  const { openAuthModal } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[#0b0f19] text-on-surface dark:text-slate-100 font-sans transition-colors duration-200">
-      {/* 1. Header / Navbar */}
-      <header className="sticky top-0 z-40 bg-surface/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-outline-variant/20 dark:border-slate-800 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
+    <div className="min-h-screen bg-background dark:bg-[#0b0f19] text-on-surface dark:text-slate-100 font-sans transition-colors duration-200 overflow-x-hidden">
+      {/* 1. Header / Navbar - Solid background prevents scroll bleed-through & flex-nowrap prevents mobile header collapse */}
+      <header className="sticky top-0 z-50 w-full bg-surface dark:bg-[#0b0f19] border-b border-outline-variant/30 dark:border-slate-800 shadow-sm transition-colors">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4 flex-nowrap">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary/25">
-              <span className="material-symbols-outlined text-[24px]">menu_book</span>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary/25 shrink-0">
+              <span className="material-symbols-outlined text-[22px] sm:text-[24px]">menu_book</span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-base sm:text-lg tracking-tight text-on-surface dark:text-slate-100">
+            <div className="flex flex-col leading-tight shrink-0">
+              <span className="font-bold text-sm sm:text-base lg:text-lg tracking-tight text-on-surface dark:text-slate-100 whitespace-nowrap">
                 TrendPDF Studio
               </span>
-              <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-primary dark:text-indigo-400">
+              <span className="text-[9px] sm:text-[10px] uppercase font-mono font-bold tracking-wider text-primary dark:text-indigo-400 whitespace-nowrap">
                 AI Intelligence
               </span>
             </div>
           </div>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs sm:text-sm font-semibold text-on-surface-variant dark:text-slate-300">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-xs sm:text-sm font-semibold text-on-surface-variant dark:text-slate-300">
             <a href="#como-funciona" className="hover:text-primary dark:hover:text-white transition-colors">
               Como Funciona
             </a>
@@ -41,35 +41,49 @@ export default function LandingPage({ theme, onThemeChange }) {
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Theme Toggle Quick Button */}
             <button
               onClick={() => onThemeChange(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-xl text-on-surface-variant dark:text-slate-400 hover:bg-surface-container dark:hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-xl text-on-surface-variant dark:text-slate-400 hover:bg-surface-container dark:hover:bg-slate-800 transition-colors shrink-0"
               title="Alternar tema"
               type="button"
+              aria-label="Alternar tema"
             >
               <span className="material-symbols-outlined text-[20px]">
                 {theme === 'dark' ? 'light_mode' : 'dark_mode'}
               </span>
             </button>
 
-            <button
-              onClick={() => openAuthModal('login')}
-              type="button"
-              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-on-surface dark:text-slate-200 hover:bg-surface-container dark:hover:bg-slate-800 transition-colors min-h-[40px]"
-            >
-              Entrar
-            </button>
+            {onReturnToDashboard ? (
+              <button
+                onClick={onReturnToDashboard}
+                type="button"
+                className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-md shadow-primary/25 transition-all min-h-[38px] sm:min-h-[40px] shrink-0 whitespace-nowrap"
+              >
+                <span>Acessar Painel</span>
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => openAuthModal('login')}
+                  type="button"
+                  className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold text-on-surface dark:text-slate-200 hover:bg-surface-container dark:hover:bg-slate-800 transition-colors min-h-[38px] sm:min-h-[40px] shrink-0 whitespace-nowrap"
+                >
+                  Entrar
+                </button>
 
-            <button
-              onClick={() => openAuthModal('signup')}
-              type="button"
-              className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-md shadow-primary/25 transition-all active:scale-[0.98] min-h-[40px]"
-            >
-              <span>Começar Grátis</span>
-              <span className="material-symbols-outlined text-[16px] hidden sm:inline">arrow_forward</span>
-            </button>
+                <button
+                  onClick={() => openAuthModal('signup')}
+                  type="button"
+                  className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-md shadow-primary/25 transition-all active:scale-[0.98] min-h-[38px] sm:min-h-[40px] shrink-0 whitespace-nowrap"
+                >
+                  <span>Cadastrar</span>
+                  <span className="material-symbols-outlined text-[16px] hidden sm:inline">arrow_forward</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -97,25 +111,27 @@ export default function LandingPage({ theme, onThemeChange }) {
             Descubra picos de demanda no Google Trends e marketplaces, modele sumários de 10 capítulos com ganchos persuasivos usando IA e gere briefings executivos em PDF diagramados em menos de 3 minutos.
           </p>
 
-          {/* CTA Buttons */}
+          {/* CTA Button */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
-            <button
-              onClick={() => openAuthModal('signup')}
-              type="button"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm sm:text-base font-bold shadow-xl shadow-primary/30 transition-all hover:-translate-y-0.5 active:scale-[0.98] min-h-[48px]"
-            >
-              <span>Criar Conta e Receber 100 Créditos</span>
-              <span className="material-symbols-outlined text-[20px]">bolt</span>
-            </button>
-
-            <button
-              onClick={loginAsDemo}
-              type="button"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-outline-variant/40 dark:border-slate-700 bg-surface-container-lowest dark:bg-slate-800/80 hover:bg-surface-container dark:hover:bg-slate-700 text-on-surface dark:text-slate-100 text-sm font-semibold transition-all min-h-[48px]"
-            >
-              <span className="material-symbols-outlined text-[20px] text-primary">play_circle</span>
-              <span>Testar Demonstração Interativa</span>
-            </button>
+            {onReturnToDashboard ? (
+              <button
+                onClick={onReturnToDashboard}
+                type="button"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm sm:text-base font-bold shadow-xl shadow-primary/30 transition-all hover:-translate-y-0.5 active:scale-[0.98] min-h-[48px]"
+              >
+                <span>Retornar ao Painel Studio</span>
+                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => openAuthModal('signup')}
+                type="button"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm sm:text-base font-bold shadow-xl shadow-primary/30 transition-all hover:-translate-y-0.5 active:scale-[0.98] min-h-[48px]"
+              >
+                <span>Criar Conta e Receber 100 Créditos</span>
+                <span className="material-symbols-outlined text-[20px]">bolt</span>
+              </button>
+            )}
           </div>
 
           {/* Metrics Bar */}

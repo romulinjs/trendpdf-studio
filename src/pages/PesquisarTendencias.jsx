@@ -170,7 +170,7 @@ export default function PesquisarTendencias({
               value={liveQuery}
               onChange={(e) => setLiveQuery(e.target.value)}
               placeholder="Ex: Receitas Low Carb, Finanças para Médicos, Automação Notion..."
-              className="w-full min-w-0 bg-transparent border-none outline-none text-xs sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500 font-medium"
+              className="w-full min-w-0 bg-transparent border-none outline-none text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500 font-medium"
             />
           </div>
 
@@ -219,7 +219,7 @@ export default function PesquisarTendencias({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Filtrar por nicho, palavra-chave ou resumo auditado..."
-              className="w-full min-w-0 bg-transparent border-none outline-none text-xs sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500"
+              className="w-full min-w-0 bg-transparent border-none outline-none text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500"
             />
             {search && (
               <button

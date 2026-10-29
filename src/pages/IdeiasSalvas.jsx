@@ -208,7 +208,7 @@ export default function IdeiasSalvas({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar entre as ideias salvas por título, público ou formato..."
-            className="w-full min-w-0 bg-transparent border-none outline-none text-xs sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500"
+            className="w-full min-w-0 bg-transparent border-none outline-none text-base sm:text-sm text-on-surface dark:text-slate-100 placeholder:text-on-surface-variant/60 dark:placeholder:text-slate-500"
           />
           {searchTerm && (
             <button
