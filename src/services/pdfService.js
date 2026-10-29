@@ -1,8 +1,28 @@
 import { jsPDF } from 'jspdf';
 
+/**
+ * Paleta de Cores e Tokens Editoriais do TrendPDF Studio
+ */
+const PALETTE = {
+  primary: [79, 70, 229],       // Indigo 600
+  primaryDark: [67, 56, 202],   // Indigo 700
+  primaryLight: [238, 242, 255],// Indigo 50
+  emerald: [16, 185, 129],      // Emerald 500
+  emeraldDark: [5, 150, 105],   // Emerald 600
+  emeraldLight: [240, 253, 244],// Emerald 50
+  slate900: [15, 23, 42],       // Titulares & Fundo Capa
+  slate800: [30, 41, 59],       // Subtítulos H2
+  slate700: [51, 65, 85],       // Parágrafos de leitura
+  slate500: [100, 116, 139],    // Legendas e metadados
+  slate400: [148, 163, 184],    // Running headers & footers
+  slate100: [241, 245, 249],    // Background cards
+  border: [226, 232, 240],      // Linhas divisórias e contornos
+  white: [255, 255, 255],
+};
+
 export const pdfService = {
   /**
-   * 1. Gera e faz o download automático de um briefing editorial em PDF a partir dos dados da ideia.
+   * 1. Gera e faz o download automático de um briefing editorial executivo em PDF (1 a 2 páginas).
    */
   generateIdeaPDF: (idea, options = {}) => {
     if (!idea) {
@@ -15,13 +35,7 @@ export const pdfService = {
       format: 'a4',
     });
 
-    const primaryColor = [79, 70, 229]; // #4f46e5 (Indigo)
-    const darkColor = [19, 27, 46]; // #131b2e (Slate 900)
-    const mutedColor = [100, 116, 139]; // #64748b (Slate 500)
-    const lightBgColor = [248, 250, 252]; // #f8fafc (Slate 50)
-    const borderColor = [226, 232, 240]; // #e2e8f0 (Slate 200)
-
-    const margin = 20;
+    const margin = 22;
     const pageWidth = 210;
     const pageHeight = 297;
     const contentWidth = pageWidth - margin * 2;
@@ -34,106 +48,116 @@ export const pdfService = {
     const ticketSugerido = idea.suggestedPrice || 'R$ 47,00';
     const formato = idea.format || 'E-book Guia (PDF)';
 
-    // Barra de Topo
-    doc.setFillColor(...primaryColor);
+    // Barra de Topo Editorial
+    doc.setFillColor(...PALETTE.primary);
     doc.rect(0, 0, pageWidth, 12, 'F');
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     doc.setTextColor(255, 255, 255);
-    doc.text('TRENDPDF STUDIO  •  BRIEFING ESTRATÉGICO EXECUTIVO', margin, 8);
+    doc.text('TRENDPDF STUDIO  •  BRIEFING ESTRATÉGICO EXECUTIVO  •  EDIÇÃO 2026', margin, 8);
 
-    y = 24;
+    y = 22;
 
-    // Badges
-    doc.setFillColor(238, 242, 255);
-    doc.roundedRect(margin, y, 65, 7, 2, 2, 'F');
+    // Badges de Metadados
+    doc.setFillColor(...PALETTE.primaryLight);
+    doc.roundedRect(margin, y, 68, 7, 2, 2, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    doc.setTextColor(...primaryColor);
+    doc.setTextColor(...PALETTE.primary);
     doc.text(formato, margin + 4, y + 5);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(...mutedColor);
-    doc.text(`ID: ${idea.id || 'INF-AI'}  |  Score: ${idea.score || '9.2'}/10`, pageWidth - margin - 45, y + 5);
+    doc.setTextColor(...PALETTE.slate500);
+    doc.text(`ID: ${idea.id || 'INF-AI'}  |  Score Preditivo: ${idea.score || '9.4'}/10`, pageWidth - margin - 58, y + 5);
 
-    y += 14;
+    y += 13;
 
-    // Título Estratégico
+    // Título Principal
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.setTextColor(...darkColor);
+    doc.setTextColor(...PALETTE.slate900);
     const splitTitle = doc.splitTextToSize(tituloEstrategico, contentWidth);
     doc.text(splitTitle, margin, y);
-    y += splitTitle.length * 8 + 4;
+    y += splitTitle.length * 7.5 + 4;
 
-    // Resumo
+    // Resumo Persuasivo
     if (idea.description) {
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(70, 80, 95);
+      doc.setFontSize(9.8);
+      doc.setTextColor(...PALETTE.slate700);
       const splitDesc = doc.splitTextToSize(idea.description, contentWidth);
       doc.text(splitDesc, margin, y);
-      y += splitDesc.length * 5 + 6;
+      y += splitDesc.length * 5.2 + 6;
     }
 
-    doc.setDrawColor(...borderColor);
+    doc.setDrawColor(...PALETTE.border);
+    doc.setLineWidth(0.3);
     doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
+    y += 7;
 
-    // Dor Resolvida
-    doc.setFillColor(...lightBgColor);
-    doc.roundedRect(margin, y, contentWidth, 24, 2.5, 2.5, 'F');
-    doc.setDrawColor(...borderColor);
-    doc.roundedRect(margin, y, contentWidth, 24, 2.5, 2.5, 'D');
+    // Box: Dor Central Resolvida
+    const splitPain = doc.splitTextToSize(dorResolvida, contentWidth - 16);
+    const painBoxHeight = 14 + (splitPain.length * 5);
+    doc.setFillColor(...PALETTE.slate100);
+    doc.roundedRect(margin, y, contentWidth, painBoxHeight, 2.5, 2.5, 'F');
+    doc.setDrawColor(...PALETTE.border);
+    doc.roundedRect(margin, y, contentWidth, painBoxHeight, 2.5, 2.5, 'D');
+
+    // Faixa lateral
+    doc.setFillColor(...PALETTE.primary);
+    doc.roundedRect(margin, y, 3, painBoxHeight, 1.5, 1.5, 'F');
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(...primaryColor);
-    doc.text('DOR RESOLVIDA (PROPOSTA DE VALOR CENTRAL):', margin + 6, y + 7);
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PALETTE.primaryDark);
+    doc.text('DOR AGUDA RESOLVIDA (PROPOSTA DE VALOR CENTRAL):', margin + 7, y + 6.5);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9.5);
-    doc.setTextColor(...darkColor);
-    const splitPain = doc.splitTextToSize(dorResolvida, contentWidth - 12);
-    doc.text(splitPain, margin + 6, y + 14);
+    doc.setTextColor(...PALETTE.slate800);
+    doc.text(splitPain, margin + 7, y + 12.5);
 
-    y += 32;
+    y += painBoxHeight + 7;
 
-    // Público e Preço
+    // Métricas: Público e Preço
+    doc.setFillColor(...PALETTE.slate100);
+    doc.roundedRect(margin, y, contentWidth, 14, 2, 2, 'F');
+    doc.setDrawColor(...PALETTE.border);
+    doc.roundedRect(margin, y, contentWidth, 14, 2, 2, 'D');
+
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(...mutedColor);
-    doc.text('PÚBLICO-ALVO:', margin, y);
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PALETTE.slate500);
+    doc.text('PÚBLICO-ALVO:', margin + 6, y + 8.5);
+
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...darkColor);
-    doc.text(publicoAlvo, margin + 28, y);
+    doc.setTextColor(...PALETTE.slate800);
+    doc.text(publicoAlvo, margin + 32, y + 8.5);
 
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...mutedColor);
-    doc.text('TICKET SUGERIDO:', margin + 110, y);
+    doc.setTextColor(...PALETTE.slate500);
+    doc.text('TICKET SUGERIDO:', margin + 105, y + 8.5);
+
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...primaryColor);
-    doc.text(ticketSugerido, margin + 145, y);
+    doc.setTextColor(...PALETTE.primaryDark);
+    doc.text(ticketSugerido, margin + 138, y + 8.5);
 
-    y += 10;
-    doc.setDrawColor(...borderColor);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 10;
+    y += 20;
 
-    // Capítulos
+    // Sumário dos 10 Capítulos
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.setTextColor(...darkColor);
-    doc.text('SUMÁRIO EDITORIAL (ESTRUTURA DE 10 CAPÍTULOS)', margin, y);
-    y += 8;
+    doc.setTextColor(...PALETTE.slate900);
+    doc.text('ESTRUTURA EDITORIAL SUGERIDA (10 CAPÍTULOS)', margin, y);
+    y += 7;
 
     if (sumarioCapitulos && sumarioCapitulos.length > 0) {
       sumarioCapitulos.forEach((chap, idx) => {
         if (y > pageHeight - 25) {
           doc.addPage();
-          doc.setFillColor(...primaryColor);
+          doc.setFillColor(...PALETTE.primary);
           doc.rect(0, 0, pageWidth, 8, 'F');
           y = 20;
         }
@@ -141,18 +165,18 @@ export const pdfService = {
         const num = chap.number || idx + 1;
         const chapTitle = chap.title || (typeof chap === 'string' ? chap : `Capítulo ${num}`);
 
-        doc.setFillColor(238, 242, 255);
-        doc.roundedRect(margin, y - 4, 18, 6, 1.5, 1.5, 'F');
+        doc.setFillColor(...PALETTE.primaryLight);
+        doc.roundedRect(margin, y - 3.8, 16, 5.5, 1.2, 1.2, 'F');
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.setTextColor(...primaryColor);
-        doc.text(`CAP ${num}`, margin + 2.5, y);
+        doc.setFontSize(7.5);
+        doc.setTextColor(...PALETTE.primaryDark);
+        doc.text(`CAP ${num < 10 ? '0' + num : num}`, margin + 2, y);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9.5);
-        doc.setTextColor(...darkColor);
-        const titleSplit = doc.splitTextToSize(chapTitle, contentWidth - 24);
-        doc.text(titleSplit, margin + 22, y);
+        doc.setTextColor(...PALETTE.slate800);
+        const titleSplit = doc.splitTextToSize(chapTitle, contentWidth - 22);
+        doc.text(titleSplit, margin + 20, y);
 
         y += Math.max(7, titleSplit.length * 5 + 2);
       });
@@ -163,11 +187,14 @@ export const pdfService = {
       doc.setPage(i);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(...mutedColor);
+      doc.setTextColor(...PALETTE.slate400);
+      doc.setDrawColor(...PALETTE.border);
+      doc.setLineWidth(0.2);
+      doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
       doc.text(
-        `TrendPDF Studio  •  Documento Gerado com IA  |  Página ${i} de ${totalPages}`,
+        `TrendPDF Studio  •  Briefing Estratégico  |  Página ${i} de ${totalPages}`,
         margin,
-        pageHeight - 10
+        pageHeight - 9
       );
     }
 
@@ -184,7 +211,8 @@ export const pdfService = {
   },
 
   /**
-   * 2. Gera e compila o E-BOOK COMPLETO DIAGRAMADO de 20 a 40+ páginas com capa, sumário, capítulos aprofundados e exercícios.
+   * 2. Gera e compila o E-BOOK COMPLETO DIAGRAMADO de alta conversão,
+   * livre de sobreposições, texto vazando de blocos ou colisões de cabeçalho/rodapé.
    */
   generateFullEbookPDF: (idea, fullChapters = [], options = {}) => {
     if (!idea) {
@@ -197,308 +225,524 @@ export const pdfService = {
       format: 'a4',
     });
 
-    const primaryColor = [79, 70, 229]; // Indigo #4f46e5
-    const darkBg = [15, 23, 42]; // Slate 900
-    const darkText = [30, 41, 59]; // Slate 800
-    const mutedText = [100, 116, 139]; // Slate 500
-    const lightBoxBg = [248, 250, 252]; // Slate 50
-    const accentGreen = [16, 185, 129]; // Emerald 500
-    const borderColor = [226, 232, 240];
-
-    const margin = 22;
     const pageWidth = 210;
     const pageHeight = 297;
-    const contentWidth = pageWidth - margin * 2;
+    const margin = 24;
+    const contentWidth = pageWidth - margin * 2; // 162 mm
+
+    // Layout boundaries estritos para garantir 0 colisão com cabeçalho (y=16) e rodapé (y=281)
+    const layout = {
+      margin,
+      pageWidth,
+      pageHeight,
+      contentWidth,
+      minY: 26,     // Conteúdo sempre começa após o header
+      maxY: 274,    // Conteúdo NUNCA ultrapassa 274mm (7mm antes da linha do rodapé em 281mm)
+    };
+
+    const cursor = { y: layout.minY };
 
     const bookTitle = idea.titulo_estrategico || idea.title || 'Infoproduto em PDF';
     const subtitle = idea.description || idea.corePain || 'Guia Prático Passo a Passo de Implementação Rápida';
     const authorName = options.authorName || 'TrendPDF Studio';
 
     // ==========================================
-    // PÁGINA 1: CAPA PROFISSIONAL DO E-BOOK
+    // MOTOR DE FLUXO TIPOGRÁFICO À PROVA DE VAZAMENTOS
     // ==========================================
-    doc.setFillColor(...darkBg);
-    doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-    // Elemento Decorativo Geométrico
-    doc.setFillColor(...primaryColor);
-    doc.circle(pageWidth, 0, 90, 'F');
+    /**
+     * Renderiza parágrafos divididos linha por linha com quebra de página automática.
+     * NUNCA permite que o texto vaze sobre o rodapé ou fora da página.
+     */
+    function renderParagraphs(text, opts = {}) {
+      if (!text) return;
+      const {
+        fontSize = 10,
+        fontStyle = 'normal',
+        textColor = PALETTE.slate700,
+        lineHeight = 5.2,
+        paragraphSpacing = 4.5,
+        maxWidth = layout.contentWidth,
+        x = layout.margin,
+      } = opts;
 
-    // Badge Superior da Capa
-    doc.setFillColor(30, 41, 59);
-    doc.roundedRect(margin, 35, 70, 8, 2, 2, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(255, 255, 255);
-    doc.text('EDIÇÃO EXCLUSIVA • 2026', margin + 6, 40.5);
+      doc.setFont('helvetica', fontStyle);
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...textColor);
 
-    // Título Principal do Livro
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(26);
-    doc.setTextColor(255, 255, 255);
-    const splitCoverTitle = doc.splitTextToSize(bookTitle, contentWidth);
-    let coverY = 70;
-    doc.text(splitCoverTitle, margin, coverY);
-    coverY += splitCoverTitle.length * 11 + 6;
+      const paragraphs = text.split(/\r?\n\s*\r?\n/).filter((p) => p.trim().length > 0);
 
-    // Linha de Destaque
-    doc.setDrawColor(...accentGreen);
-    doc.setLineWidth(1.5);
-    doc.line(margin, coverY, margin + 40, coverY);
-    coverY += 12;
+      paragraphs.forEach((paragraph, pIdx) => {
+        const lines = doc.splitTextToSize(paragraph.trim(), maxWidth);
 
-    // Subtítulo
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(12);
-    doc.setTextColor(203, 213, 225); // Slate 300
-    const splitCoverSub = doc.splitTextToSize(subtitle, contentWidth);
-    doc.text(splitCoverSub, margin, coverY);
+        lines.forEach((line) => {
+          if (cursor.y + lineHeight > layout.maxY) {
+            doc.addPage();
+            cursor.y = layout.minY;
+            doc.setFont('helvetica', fontStyle);
+            doc.setFontSize(fontSize);
+            doc.setTextColor(...textColor);
+          }
+          doc.text(line, x, cursor.y);
+          cursor.y += lineHeight;
+        });
 
-    // Rodapé da Capa (Autor & Selo de Validação)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`Por: ${authorName}`, margin, pageHeight - 35);
+        if (pIdx < paragraphs.length - 1) {
+          if (cursor.y + paragraphSpacing <= layout.maxY) {
+            cursor.y += paragraphSpacing;
+          }
+        }
+      });
+    }
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...mutedText);
-    doc.text('Validado por Inteligência de Demanda Preditiva', margin, pageHeight - 27);
+    /**
+     * Renderiza subtítulos de seção com proteção contra linhas órfãs (widow/orphan prevention).
+     * Se o título não couber com pelo menos 3 linhas de texto na página atual, força nova página.
+     */
+    function renderHeading(title, opts = {}) {
+      if (!title) return;
+      const {
+        fontSize = 12.5,
+        fontStyle = 'bold',
+        textColor = PALETTE.slate800,
+        lineHeight = 6.2,
+        spacingBefore = 7,
+        spacingAfter = 3.5,
+        minRemainingSpace = 30,
+        maxWidth = layout.contentWidth,
+        x = layout.margin,
+      } = opts;
 
-    // ==========================================
-    // PÁGINA 2: FICHA EDITORIAL & INTRODUÇÃO
-    // ==========================================
-    doc.addPage();
-    let y = margin;
+      if (cursor.y > layout.minY + 2) {
+        cursor.y += spacingBefore;
+      }
 
-    // Header interno padrão
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(...mutedText);
-    doc.text(bookTitle.toUpperCase(), margin, 14);
-    doc.setDrawColor(...borderColor);
-    doc.setLineWidth(0.3);
-    doc.line(margin, 16, pageWidth - margin, 16);
+      const lines = doc.splitTextToSize(title, maxWidth);
+      const headingHeight = lines.length * lineHeight;
 
-    y = 30;
+      if (cursor.y + headingHeight + minRemainingSpace > layout.maxY) {
+        doc.addPage();
+        cursor.y = layout.minY;
+      }
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.setTextColor(...darkText);
-    doc.text('SOBRE ESTA OBRA', margin, y);
-    y += 10;
+      doc.setFont('helvetica', fontStyle);
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...textColor);
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(70, 80, 95);
-    const introText = `Este material foi desenvolvido com um objetivo central: entregar uma experiência prática, direta e transformadora. Ao contrário de livros tradicionais repletos de teorias distantes da realidade, cada página aqui foi pensada para resolver a dor de "${idea.dor_resolvida || idea.corePain || 'executar com clareza'}" de forma imediata.\n\nRecomendamos que você leia cada capítulo com um caderno ao lado ou aplicando diretamente no seu dia a dia. Ao final de cada capítulo, você encontrará exercícios práticos de ação imediata desenhados para consolidar o aprendizado em menos de 10 minutos.`;
-    const splitIntro = doc.splitTextToSize(introText, contentWidth);
-    doc.text(splitIntro, margin, y);
-    y += splitIntro.length * 6 + 15;
+      lines.forEach((line) => {
+        doc.text(line, x, cursor.y);
+        cursor.y += lineHeight;
+      });
 
-    // Ficha Técnica Box
-    doc.setFillColor(...lightBoxBg);
-    doc.roundedRect(margin, y, contentWidth, 50, 3, 3, 'F');
-    doc.setDrawColor(...borderColor);
-    doc.roundedRect(margin, y, contentWidth, 50, 3, 3, 'D');
+      cursor.y += spacingAfter;
+    }
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(...primaryColor);
-    doc.text('FICHA TÉCNICA EDITORIAL', margin + 8, y + 10);
+    /**
+     * Renderiza caixas de destaque (Exercício Prático ou Síntese) com altura dinâmica
+     * calculada exatamente com base nas linhas de texto reais, impedindo que o texto
+     * vaze para fora da moldura.
+     */
+    function renderCalloutBox(config) {
+      const {
+        badge = '',
+        content = '',
+        type = 'exercise',
+        maxWidth = layout.contentWidth,
+        x = layout.margin,
+      } = config;
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(...darkText);
-    doc.text(`• Título Oficial: ${bookTitle}`, margin + 8, y + 18);
-    doc.text(`• Categoria: ${idea.category || 'Desenvolvimento & Negócios'}`, margin + 8, y + 25);
-    doc.text(`• Público-Alvo: ${idea.targetAudience || 'Geral'}`, margin + 8, y + 32);
-    doc.text(`• Formato de Distribuição: ${idea.format || 'E-book Digital (PDF)'}`, margin + 8, y + 39);
-    doc.text('• Direitos: Licenciado para uso e distribuição comercial pelo autor.', margin + 8, y + 46);
+      if (!content) return;
 
-    // ==========================================
-    // PÁGINA 3: SUMÁRIO GERAL DIAGRAMADO
-    // ==========================================
-    doc.addPage();
-    y = 30;
+      const theme = type === 'exercise' ? {
+        bg: PALETTE.emeraldLight,
+        border: [187, 247, 208],
+        accent: PALETTE.emerald,
+        badgeColor: [21, 128, 61],
+        textColor: PALETTE.slate800,
+        icon: '•',
+        badgeText: badge || 'EXERCÍCIO DE IMPLEMENTAÇÃO IMEDIATA (5-10 MIN)',
+      } : {
+        bg: PALETTE.primaryLight,
+        border: [224, 231, 255],
+        accent: PALETTE.primary,
+        badgeColor: PALETTE.primaryDark,
+        textColor: PALETTE.slate800,
+        icon: '★',
+        badgeText: badge || 'SÍNTESE & REGRA DE OURO',
+      };
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.setTextColor(...darkText);
-    doc.text('SUMÁRIO GERAL', margin, y);
-    y += 12;
+      const paddingX = 8;
+      const paddingY = 6;
+      const textInnerWidth = maxWidth - (paddingX * 2) - 4; // Reserva espaço da faixa lateral esquerda
 
-    const chaptersToRender = (fullChapters && fullChapters.length > 0)
-      ? fullChapters
-      : (idea.chapters || idea.sumario || []);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      const textLines = doc.splitTextToSize(content.trim(), textInnerWidth);
+      const textLineHeight = 5.1;
+      const badgeHeight = 6.5;
+      const totalBoxHeight = paddingY + badgeHeight + (textLines.length * textLineHeight) + paddingY + 1;
 
-    chaptersToRender.forEach((ch, idx) => {
-      const num = ch.chapterNumber || ch.number || idx + 1;
-      const title = ch.chapterTitle || ch.title || `Capítulo ${num}`;
+      if (cursor.y > layout.minY + 2) {
+        cursor.y += 5;
+      }
 
-      doc.setFillColor(238, 242, 255);
-      doc.roundedRect(margin, y - 4, 18, 6, 1.5, 1.5, 'F');
+      // Se o bloco inteiro não couber na página atual, transporta-o de forma limpa para a próxima página
+      if (cursor.y + totalBoxHeight > layout.maxY) {
+        doc.addPage();
+        cursor.y = layout.minY;
+      }
+
+      const boxY = cursor.y;
+
+      // Fundo suave
+      doc.setFillColor(...theme.bg);
+      doc.roundedRect(x, boxY, maxWidth, totalBoxHeight, 2.5, 2.5, 'F');
+
+      // Contorno suave
+      doc.setDrawColor(...theme.border);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(x, boxY, maxWidth, totalBoxHeight, 2.5, 2.5, 'D');
+
+      // Faixa lateral esquerda sólida com acabamento arredondado executivo
+      doc.setFillColor(...theme.accent);
+      doc.roundedRect(x, boxY, 3.5, totalBoxHeight, 1.5, 1.5, 'F');
+
+      // Título do Badge
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
-      doc.setTextColor(...primaryColor);
-      doc.text(`CAP ${num}`, margin + 2.5, y);
+      doc.setTextColor(...theme.badgeColor);
+      doc.text(`${theme.icon}  ${theme.badgeText.toUpperCase()}`, x + paddingX + 2, boxY + paddingY + 3.5);
 
+      // Texto interno proporcional e contido
+      doc.setFont('helvetica', type === 'takeaway' ? 'italic' : 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(...theme.textColor);
+
+      let currentTextY = boxY + paddingY + badgeHeight + 2.5;
+      textLines.forEach((line) => {
+        doc.text(line, x + paddingX + 2, currentTextY);
+        currentTextY += textLineHeight;
+      });
+
+      cursor.y = boxY + totalBoxHeight + 6;
+    }
+
+    // ==========================================
+    // PÁGINA 1: CAPA PROFISSIONAL E MODERNA
+    // ==========================================
+    doc.setFillColor(...PALETTE.slate900);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+    // Cabeçalho gráfico escuro com transição elegante
+    doc.setFillColor(24, 34, 60);
+    doc.rect(0, 0, pageWidth, 80, 'F');
+
+    // Faixa dupla decorativa moderna
+    doc.setFillColor(...PALETTE.primary);
+    doc.rect(0, 78, pageWidth, 2.5, 'F');
+
+    doc.setFillColor(...PALETTE.emerald);
+    doc.rect(margin, 78, 45, 2.5, 'F');
+
+    // Badge Superior da Capa
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PALETTE.emerald);
+    doc.text('TRENDPDF STUDIO  •  ESTÚDIO DE INFOPRODUTOS ESTRATÉGICOS', margin, 32);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(203, 213, 225);
+    doc.text(`COLEÇÃO EXCLUSIVA • EDIÇÃO ${new Date().getFullYear()}`, margin, 42);
+
+    // Título Principal da Obra
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.setTextColor(255, 255, 255);
+    const splitTitle = doc.splitTextToSize(bookTitle, contentWidth);
+    let coverY = 110;
+    doc.text(splitTitle, margin, coverY);
+    coverY += splitTitle.length * 9.5 + 8;
+
+    // Divisor de Destaque
+    doc.setFillColor(...PALETTE.emerald);
+    doc.roundedRect(margin, coverY, 35, 1.5, 0.75, 0.75, 'F');
+    coverY += 12;
+
+    // Subtítulo / Descrição Persuasiva
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(203, 213, 225);
+    const splitSub = doc.splitTextToSize(subtitle, contentWidth);
+    doc.text(splitSub, margin, coverY);
+    coverY += splitSub.length * 6 + 14;
+
+    // Badges de Recursos do Livro
+    const pills = ['10 CAPÍTULOS PRÁTICOS', 'EXERCÍCIOS DE AÇÃO', 'MÉTODO PASSO A PASSO'];
+    let pillX = margin;
+    pills.forEach((pText) => {
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(...darkText);
-      const splitTocTitle = doc.splitTextToSize(title, contentWidth - 25);
-      doc.text(splitTocTitle, margin + 22, y);
-
-      y += Math.max(9, splitTocTitle.length * 6 + 4);
+      doc.setFontSize(7.5);
+      const pWidth = doc.getTextWidth(pText) + 8;
+      doc.setFillColor(30, 41, 59);
+      doc.roundedRect(pillX, coverY, pWidth, 7, 1.5, 1.5, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.text(pText, pillX + 4, coverY + 4.8);
+      pillX += pWidth + 4;
     });
+
+    // Card do Autor & Selo no Rodapé da Capa
+    doc.setFillColor(20, 29, 47);
+    doc.roundedRect(margin, pageHeight - 48, contentWidth, 26, 3, 3, 'F');
+    doc.setDrawColor(40, 53, 80);
+    doc.roundedRect(margin, pageHeight - 48, contentWidth, 26, 3, 3, 'D');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`Autor: ${authorName}`, margin + 8, pageHeight - 34);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...PALETTE.slate400);
+    doc.text('Auditoria de Demanda & Validação Editorial Inteligente  •  Distribuição Autorizada', margin + 8, pageHeight - 27);
+
+    // ==========================================
+    // PÁGINA 2: APRESENTAÇÃO & FICHA EDITORIAL
+    // (Sem repetição do cabeçalho de título!)
+    // ==========================================
+    doc.addPage();
+    cursor.y = layout.minY + 4;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(...PALETTE.slate900);
+    doc.text('Apresentação & Como Usar Este Livro', margin, cursor.y);
+    cursor.y += 10;
+
+    renderParagraphs(
+      `Este material foi concebido com uma premissa clara: entregar uma experiência prática, direta e de alta transformação para o seu dia a dia. Ao contrário de obras densas e teóricas que ficam esquecidas na estante, cada linha deste livro foi arquitetada para solucionar de forma prática a dor de "${idea.dor_resolvida || idea.corePain || 'obter resultados claros'}" de maneira imediata.\n\nRecomendamos que você aplique os conceitos em ritmo de imersão. Ao final de cada um dos 10 capítulos, você encontrará um exercício de ação rápida e a síntese da regra de ouro. Se você dedicar de 5 a 10 minutos para executar a atividade sugerida, verá os resultados se consolidarem com leveza e precisão.`,
+      { fontSize: 10, lineHeight: 5.4, paragraphSpacing: 4.5 }
+    );
+
+    cursor.y += 6;
+
+    // Ficha Técnica Editorial Estruturada
+    const cardY = cursor.y;
+    const cardHeight = 62;
+    doc.setFillColor(...PALETTE.slate100);
+    doc.roundedRect(margin, cardY, contentWidth, cardHeight, 3, 3, 'F');
+    doc.setDrawColor(...PALETTE.border);
+    doc.roundedRect(margin, cardY, contentWidth, cardHeight, 3, 3, 'D');
+
+    // Faixa lateral Indigo
+    doc.setFillColor(...PALETTE.primary);
+    doc.roundedRect(margin, cardY, 3, cardHeight, 1.5, 1.5, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(...PALETTE.primaryDark);
+    doc.text('FICHA CATALOGRÁFICA & METADADOS DA EDIÇÃO', margin + 8, cardY + 9);
+
+    const metaRows = [
+      ['Título da Obra:', bookTitle],
+      ['Categoria & Mercado:', idea.category || 'Educação & Negócios'],
+      ['Público-Alvo Prioritário:', idea.targetAudience || 'Público Geral'],
+      ['Formato Editorial:', idea.format || 'E-book Guia de Aplicação Rápida'],
+      ['Licenciamento & Direitos:', 'Licenciado para estudo, uso pessoal e implementação profissional.'],
+    ];
+
+    let metaY = cardY + 18;
+    metaRows.forEach(([lbl, val]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(...PALETTE.slate800);
+      doc.text(lbl, margin + 8, metaY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(...PALETTE.slate700);
+      const splitVal = doc.splitTextToSize(val, contentWidth - 55);
+      doc.text(splitVal, margin + 50, metaY);
+      metaY += Math.max(7, splitVal.length * 4.5 + 2);
+    });
+
+    // ==========================================
+    // PÁGINA 3: SUMÁRIO GERAL (RESERVADA PARA PREENCHIMENTO REAL)
+    // ==========================================
+    doc.addPage();
+    const tocPageIndex = 3;
 
     // ==========================================
     // PÁGINAS 4+: CONTEÚDO DOS CAPÍTULOS
     // ==========================================
+    const chaptersToRender = (fullChapters && fullChapters.length > 0)
+      ? fullChapters
+      : (idea.chapters || idea.sumario || []);
+
+    const chapterStarts = {};
+
     chaptersToRender.forEach((ch, idx) => {
       doc.addPage();
-      y = 28;
+      cursor.y = layout.minY + 2;
 
       const num = ch.chapterNumber || ch.number || idx + 1;
       const title = ch.chapterTitle || ch.title || `Capítulo ${num}`;
+      chapterStarts[num] = doc.internal.getCurrentPageInfo().pageNumber;
 
       // Badge do Capítulo
-      doc.setFillColor(238, 242, 255);
-      doc.roundedRect(margin, y, 30, 7, 2, 2, 'F');
+      doc.setFillColor(...PALETTE.primaryLight);
+      doc.roundedRect(margin, cursor.y, 28, 6.5, 1.5, 1.5, 'F');
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
-      doc.setTextColor(...primaryColor);
-      doc.text(`CAPÍTULO ${num}`, margin + 4, y + 5);
-      y += 14;
+      doc.setFontSize(8);
+      doc.setTextColor(...PALETTE.primaryDark);
+      doc.text(`CAPÍTULO ${num < 10 ? '0' + num : num}`, margin + 3.5, cursor.y + 4.5);
+      cursor.y += 11;
 
       // Título do Capítulo
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
-      doc.setTextColor(...darkText);
+      doc.setTextColor(...PALETTE.slate900);
       const splitChTitle = doc.splitTextToSize(title, contentWidth);
-      doc.text(splitChTitle, margin, y);
-      y += splitChTitle.length * 8 + 6;
+      doc.text(splitChTitle, margin, cursor.y);
+      cursor.y += splitChTitle.length * 7.5 + 4;
 
-      doc.setDrawColor(...borderColor);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += 8;
+      // Linha de Respiro
+      doc.setDrawColor(...PALETTE.border);
+      doc.setLineWidth(0.3);
+      doc.line(margin, cursor.y, margin + contentWidth, cursor.y);
+      cursor.y += 7;
 
       // Introdução do Capítulo
       if (ch.introduction) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10.5);
-        doc.setTextColor(51, 65, 85);
-        const splitIntro = doc.splitTextToSize(ch.introduction, contentWidth);
-        doc.text(splitIntro, margin, y);
-        y += splitIntro.length * 5.8 + 8;
+        renderParagraphs(ch.introduction, {
+          fontSize: 10,
+          textColor: PALETTE.slate800,
+          lineHeight: 5.3,
+          paragraphSpacing: 4.5,
+        });
       }
 
       // Seções do Capítulo
       if (ch.sections && Array.isArray(ch.sections)) {
         ch.sections.forEach((sec) => {
-          if (y > pageHeight - 45) {
-            doc.addPage();
-            y = 25;
-          }
-
           if (sec.subtitle) {
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.setTextColor(...darkText);
-            const splitSub = doc.splitTextToSize(sec.subtitle, contentWidth);
-            doc.text(splitSub, margin, y);
-            y += splitSub.length * 6 + 4;
+            renderHeading(sec.subtitle, {
+              fontSize: 12,
+              textColor: PALETTE.slate900,
+              spacingBefore: 8,
+              spacingAfter: 3.5,
+              minRemainingSpace: 28,
+            });
           }
 
           if (sec.body) {
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            doc.setTextColor(70, 80, 95);
-            const splitBody = doc.splitTextToSize(sec.body, contentWidth);
-            doc.text(splitBody, margin, y);
-            y += splitBody.length * 5.5 + 8;
+            renderParagraphs(sec.body, {
+              fontSize: 9.8,
+              textColor: PALETTE.slate700,
+              lineHeight: 5.2,
+              paragraphSpacing: 4,
+            });
           }
         });
       }
 
-      // Box: Exercício Prático
+      // Bloco do Exercício Prático
       if (ch.practicalExercise) {
-        if (y > pageHeight - 55) {
-          doc.addPage();
-          y = 25;
-        }
-
-        const splitExercise = doc.splitTextToSize(ch.practicalExercise, contentWidth - 14);
-        const boxHeight = Math.max(26, splitExercise.length * 5.5 + 16);
-
-        doc.setFillColor(240, 253, 244); // Emerald 50
-        doc.roundedRect(margin, y, contentWidth, boxHeight, 3, 3, 'F');
-        doc.setDrawColor(187, 247, 208); // Emerald 200
-        doc.roundedRect(margin, y, contentWidth, boxHeight, 3, 3, 'D');
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(21, 128, 61); // Emerald 700
-        doc.text('EXERCÍCIO PRÁTICO • AÇÃO IMEDIATA', margin + 7, y + 8);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9.5);
-        doc.setTextColor(30, 41, 59);
-        doc.text(splitExercise, margin + 7, y + 16);
-
-        y += boxHeight + 8;
+        renderCalloutBox({
+          badge: 'EXERCÍCIO PRÁTICO • AÇÃO IMEDIATA',
+          content: ch.practicalExercise,
+          type: 'exercise',
+        });
       }
 
-      // Box: Insight Chave
+      // Bloco da Síntese do Capítulo
       if (ch.keyTakeaway) {
-        if (y > pageHeight - 40) {
-          doc.addPage();
-          y = 25;
-        }
-
-        doc.setFillColor(...lightBoxBg);
-        doc.roundedRect(margin, y, contentWidth, 18, 2, 2, 'F');
-        doc.setDrawColor(...borderColor);
-        doc.roundedRect(margin, y, contentWidth, 18, 2, 2, 'D');
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8.5);
-        doc.setTextColor(...primaryColor);
-        doc.text('SÍNTESE DO CAPÍTULO:', margin + 6, y + 6);
-
-        doc.setFont('helvetica', 'italic');
-        doc.setFontSize(9);
-        doc.setTextColor(...darkText);
-        const splitTakeaway = doc.splitTextToSize(ch.keyTakeaway, contentWidth - 12);
-        doc.text(splitTakeaway, margin + 6, y + 12);
-
-        y += 24;
+        renderCalloutBox({
+          badge: 'SÍNTESE DO CAPÍTULO',
+          content: ch.keyTakeaway,
+          type: 'takeaway',
+        });
       }
     });
 
-    // Numeração de Páginas Contínua e Cabeçalho Interno em todas as páginas exceto a Capa
+    // ==========================================
+    // RENDERIZAÇÃO DO SUMÁRIO NA PÁGINA 3 COM NÚMEROS REAIS
+    // ==========================================
+    doc.setPage(tocPageIndex);
+    cursor.y = layout.minY + 4;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(...PALETTE.slate900);
+    doc.text('Sumário Geral da Obra', margin, cursor.y);
+    cursor.y += 12;
+
+    chaptersToRender.forEach((ch, idx) => {
+      const num = ch.chapterNumber || ch.number || idx + 1;
+      const title = ch.chapterTitle || ch.title || `Capítulo ${num}`;
+      const pageNum = chapterStarts[num] || (4 + idx);
+
+      // Pill CAP
+      doc.setFillColor(...PALETTE.primaryLight);
+      doc.roundedRect(margin, cursor.y - 3.8, 16, 5.5, 1.2, 1.2, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...PALETTE.primaryDark);
+      doc.text(`CAP ${num < 10 ? '0' + num : num}`, margin + 2.2, cursor.y);
+
+      // Título do Capítulo com corte proporcional
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(...PALETTE.slate800);
+      const titleWidthMax = contentWidth - 42;
+      const splitToc = doc.splitTextToSize(title, titleWidthMax);
+      doc.text(splitToc, margin + 20, cursor.y);
+
+      // Número Real da Página
+      const pageLabel = `Pág. ${pageNum < 10 ? '0' + pageNum : pageNum}`;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(...PALETTE.slate500);
+      const pWidth = doc.getTextWidth(pageLabel);
+      doc.text(pageLabel, pageWidth - margin - pWidth, cursor.y);
+
+      cursor.y += Math.max(8, splitToc.length * 5 + 3);
+    });
+
+    // ==========================================
+    // CABEÇALHOS & RODAPÉS EM TODAS AS PÁGINAS (EXCETO CAPA)
+    // ==========================================
     const totalPages = doc.internal.getNumberOfPages();
     for (let p = 2; p <= totalPages; p++) {
       doc.setPage(p);
 
-      // Cabeçalho Interno
+      // Cabeçalho Interno com Truncamento Seguro (0 colisão com o logo/tag da direita)
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
-      doc.setTextColor(...mutedText);
-      doc.text(bookTitle, margin, 12);
-      doc.text('TrendPDF Studio Editorial', pageWidth - margin - 35, 12);
+      doc.setTextColor(...PALETTE.slate400);
 
-      doc.setDrawColor(241, 245, 249);
+      let hTitle = bookTitle;
+      if (doc.getTextWidth(hTitle) > 105) {
+        while (hTitle.length > 10 && doc.getTextWidth(hTitle + '...') > 105) {
+          hTitle = hTitle.slice(0, -1);
+        }
+        hTitle += '...';
+      }
+      doc.text(hTitle, margin, 13);
+      doc.text('TrendPDF Studio Editorial', pageWidth - margin - 35, 13);
+
+      doc.setDrawColor(...PALETTE.border);
       doc.setLineWidth(0.2);
-      doc.line(margin, 14, pageWidth - margin, 14);
+      doc.line(margin, 16, pageWidth - margin, 16);
 
-      // Rodapé
-      doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
-      doc.text(
-        `Página ${p} de ${totalPages}`,
-        pageWidth / 2 - 10,
-        pageHeight - 9
-      );
+      // Rodapé com separador e numeração contínua
+      doc.line(margin, 281, pageWidth - margin, 281);
+      doc.text('Licença Exclusiva  •  Todos os direitos reservados', margin, 287);
+
+      const pageStr = `Página ${p} de ${totalPages}`;
+      const pageStrWidth = doc.getTextWidth(pageStr);
+      doc.text(pageStr, pageWidth - margin - pageStrWidth, 287);
     }
 
     const safeFilename = bookTitle
@@ -511,5 +755,7 @@ export const pdfService = {
 
     doc.save(filename);
     return filename;
-  }
+  },
 };
+
+export default pdfService;
