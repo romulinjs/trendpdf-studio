@@ -95,10 +95,10 @@ ${idea.whySellNow}
   };
 
   // Baixa o Briefing rápido
-  const handleDownloadBriefingPDF = () => {
+  const handleDownloadBriefingPDF = async () => {
     setDownloadingBriefing(true);
     try {
-      const filename = pdfService.generateIdeaPDF(idea);
+      const filename = await pdfService.generateIdeaPDF(idea);
       if (onShowToast) {
         onShowToast({
           type: 'success',
@@ -116,21 +116,21 @@ ${idea.whySellNow}
         });
       }
     } finally {
-      setTimeout(() => setDownloadingBriefing(false), 600);
+      setDownloadingBriefing(false);
     }
   };
 
   // Baixa o E-book Completo Diagramado
-  const handleDownloadFullEbookPDF = () => {
+  const handleDownloadFullEbookPDF = async () => {
     setDownloadingEbook(true);
     try {
       const author = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'TrendPDF Studio';
-      const filename = pdfService.generateFullEbookPDF(idea, writtenChapters, { authorName: author });
+      const filename = await pdfService.generateFullEbookPDF(idea, writtenChapters, { authorName: author });
       if (onShowToast) {
         onShowToast({
           type: 'success',
-          title: 'E-book Completo Baixado!',
-          message: `Arquivo ${filename} diagramado e compilado com sucesso!`,
+          title: 'Workbook Completo Baixado!',
+          message: `Arquivo ${filename} diagramado e compilado no padrão visual moderno!`,
         });
       }
     } catch (err) {
@@ -138,12 +138,12 @@ ${idea.whySellNow}
       if (onShowToast) {
         onShowToast({
           type: 'error',
-          title: 'Erro ao compilar e-book',
-          message: 'Não foi possível gerar o arquivo final do e-book.',
+          title: 'Erro ao compilar workbook',
+          message: 'Não foi possível gerar o arquivo final do workbook.',
         });
       }
     } finally {
-      setTimeout(() => setDownloadingEbook(false), 600);
+      setDownloadingEbook(false);
     }
   };
 

@@ -115,9 +115,9 @@ export default function IdeiasSalvas({
     }
   };
 
-  const handleExportSinglePDF = (idea) => {
+  const handleExportSinglePDF = async (idea) => {
     try {
-      const filename = pdfService.generateIdeaPDF(idea);
+      const filename = await pdfService.generateIdeaPDF(idea);
       if (onShowToast) {
         onShowToast({
           type: 'success',

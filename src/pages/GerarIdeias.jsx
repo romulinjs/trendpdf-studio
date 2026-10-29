@@ -161,9 +161,9 @@ export default function GerarIdeias({
     }
   };
 
-  const handleExportPDF = (idea) => {
+  const handleExportPDF = async (idea) => {
     try {
-      const filename = pdfService.generateIdeaPDF(idea);
+      const filename = await pdfService.generateIdeaPDF(idea);
       if (onShowToast) {
         onShowToast({
           type: 'success',

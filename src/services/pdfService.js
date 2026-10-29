@@ -1,30 +1,174 @@
 import { jsPDF } from 'jspdf';
 
 /**
- * Paleta de Cores e Tokens Editoriais do TrendPDF Studio
+ * Paleta de Cores e Tokens Visuais do Workbook Editorial
+ * Inspirada nos designs de alta conversão do Canva, Etsy e publicações executivas.
  */
 const PALETTE = {
-  primary: [79, 70, 229],       // Indigo 600
-  primaryDark: [67, 56, 202],   // Indigo 700
-  primaryLight: [238, 242, 255],// Indigo 50
-  emerald: [16, 185, 129],      // Emerald 500
-  emeraldDark: [5, 150, 105],   // Emerald 600
-  emeraldLight: [240, 253, 244],// Emerald 50
-  slate900: [15, 23, 42],       // Titulares & Fundo Capa
-  slate800: [30, 41, 59],       // Subtítulos H2
-  slate700: [51, 65, 85],       // Parágrafos de leitura
-  slate500: [100, 116, 139],    // Legendas e metadados
-  slate400: [148, 163, 184],    // Running headers & footers
-  slate100: [241, 245, 249],    // Background cards
-  border: [226, 232, 240],      // Linhas divisórias e contornos
-  white: [255, 255, 255],
+  bgCanvas: [250, 248, 245],    // Fundo quente tipo papel de alta gramatura (#FAF8F5)
+  cardWhite: [255, 255, 255],   // Cards brancos destacados sobre o fundo cream
+  terracotta: [224, 109, 67],   // Terracotta / Laranja quente (#E06D43)
+  terracottaDark: [194, 84, 46],// Terracotta escuro
+  terracottaLight: [255, 243, 237],
+  peachBg: [255, 247, 237],     // Fundo suave de destaque (#FFF7ED)
+  mintBg: [240, 253, 244],      // Fundo suave verde menta (#F0FDF4)
+  mintAccent: [16, 185, 129],   // Verde esmeralda (#10B981)
+  navyDark: [30, 41, 59],       // Azul marinho escuro (#1E293B)
+  slateDark: [51, 65, 85],      // Texto de leitura confortável (#334155)
+  slateMuted: [100, 116, 139],  // Legendas e textos secundários (#64748B)
+  slateLight: [148, 163, 184],  // Bordas e regras de rodapé (#94A3B8)
+  borderLight: [235, 230, 222], // Borda suave dos cards (#EBE6DE)
+  lineRuled: [218, 212, 203],   // Linhas pautadas de caderno (#DAD4CB)
+  berryAccent: [190, 75, 100],  // Tag delicada da capa (#BE4B64)
 };
+
+/**
+ * Resolve fotos temáticas de alta resolução com base no nicho do infoproduto.
+ */
+function getThematicImages(niche = '', category = '', title = '') {
+  const text = `${niche} ${category} ${title}`.toLowerCase();
+
+  // 1. Finanças / Crianças / Família
+  if (
+    text.includes('finan') || text.includes('dinheiro') || text.includes('mesada') ||
+    text.includes('crian') || text.includes('infan') || text.includes('filho') || text.includes('pais')
+  ) {
+    return {
+      coverLeft: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=600&q=80',
+      coverCenter: 'https://images.unsplash.com/photo-1476703993599-0035a21b17a9?auto=format&fit=crop&w=700&q=80',
+      coverRight: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=600&q=80',
+    };
+  }
+
+  // 2. Culinária / Receitas / Saúde / Smoothies
+  if (
+    text.includes('receit') || text.includes('smoothie') || text.includes('suco') ||
+    text.includes('saud') || text.includes('aliment') || text.includes('dieta') || text.includes('culin')
+  ) {
+    return {
+      coverLeft: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=600&q=80',
+      coverCenter: 'https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=700&q=80',
+      coverRight: 'https://images.unsplash.com/photo-1610970881699-44a5587cabec?auto=format&fit=crop&w=600&q=80',
+    };
+  }
+
+  // 3. Pets / Cães / Adestramento
+  if (
+    text.includes('pet') || text.includes('cachorr') || text.includes('adest') ||
+    text.includes('cao') || text.includes('filhot') || text.includes('gato')
+  ) {
+    return {
+      coverLeft: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80',
+      coverCenter: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=700&q=80',
+      coverRight: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=600&q=80',
+    };
+  }
+
+  // 4. Produtividade / Notion / Foco / Organização
+  if (
+    text.includes('produtiv') || text.includes('notion') || text.includes('organiza') ||
+    text.includes('foco') || text.includes('tempo') || text.includes('rotina') || text.includes('habito')
+  ) {
+    return {
+      coverLeft: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=600&q=80',
+      coverCenter: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=700&q=80',
+      coverRight: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80',
+    };
+  }
+
+  // 5. Ansiedade / Bem-estar / Mentalidade
+  if (
+    text.includes('ansied') || text.includes('ment') || text.includes('calm') ||
+    text.includes('emoc') || text.includes('terap') || text.includes('sono')
+  ) {
+    return {
+      coverLeft: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80',
+      coverCenter: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=700&q=80',
+      coverRight: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80',
+    };
+  }
+
+  // 6. Fitness / Treino / Emagrecimento
+  if (
+    text.includes('fit') || text.includes('trein') || text.includes('emagrec') ||
+    text.includes('exerc') || text.includes('corrid') || text.includes('muscul')
+  ) {
+    return {
+      coverLeft: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80',
+      coverCenter: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=700&q=80',
+      coverRight: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=600&q=80',
+    };
+  }
+
+  // Fallback padrão moderno (Estratégia & Empreendedorismo)
+  return {
+    coverLeft: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=600&q=80',
+    coverCenter: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=700&q=80',
+    coverRight: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80',
+  };
+}
+
+/**
+ * Carrega e converte uma imagem em DataURL com cantos arredondados ou topo em arco (Cathedral Arch)
+ * de forma 100% segura com timeout de 2.5s.
+ */
+async function loadFramedImage(url, widthPx = 400, heightPx = 500, borderRadiusPx = 16, isArched = false) {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return null;
+  }
+
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 2500);
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      clearTimeout(timer);
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = widthPx;
+        canvas.height = heightPx;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(null);
+
+        ctx.beginPath();
+        if (isArched) {
+          // Topo em arco (Cathedral Arch - estilo Foto 5 The Smoothie Book)
+          const r = widthPx / 2;
+          ctx.arc(r, r, r, Math.PI, 0, false);
+          ctx.lineTo(widthPx, heightPx - borderRadiusPx);
+          ctx.quadraticCurveTo(widthPx, heightPx, widthPx - borderRadiusPx, heightPx);
+          ctx.lineTo(borderRadiusPx, heightPx);
+          ctx.quadraticCurveTo(0, heightPx, 0, heightPx - borderRadiusPx);
+          ctx.closePath();
+        } else if (ctx.roundRect) {
+          ctx.roundRect(0, 0, widthPx, heightPx, borderRadiusPx);
+        } else {
+          ctx.rect(0, 0, widthPx, heightPx);
+        }
+        ctx.clip();
+        ctx.drawImage(img, 0, 0, widthPx, heightPx);
+        resolve(canvas.toDataURL('image/jpeg', 0.88));
+      } catch {
+        resolve(null);
+      }
+    };
+
+    img.onerror = () => {
+      clearTimeout(timer);
+      resolve(null);
+    };
+
+    img.src = url;
+  });
+}
 
 export const pdfService = {
   /**
-   * 1. Gera e faz o download automático de um briefing editorial executivo em PDF (1 a 2 páginas).
+   * 1. Gera e faz o download automático de um briefing editorial executivo em PDF.
    */
-  generateIdeaPDF: (idea, options = {}) => {
+  generateIdeaPDF: async (idea, options = {}) => {
     if (!idea) {
       throw new Error('Nenhum dado de ideia foi fornecido para exportação.');
     }
@@ -35,11 +179,16 @@ export const pdfService = {
       format: 'a4',
     });
 
-    const margin = 22;
+    const margin = 20;
     const pageWidth = 210;
     const pageHeight = 297;
     const contentWidth = pageWidth - margin * 2;
-    let y = margin;
+
+    // Fundo quente tipo papel
+    doc.setFillColor(...PALETTE.bgCanvas);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+    let y = 18;
 
     const tituloEstrategico = idea.titulo_estrategico || idea.title || 'Infoproduto em PDF';
     const dorResolvida = idea.dor_resolvida || idea.corePain || 'Falta de método estruturado e passo a passo claro para execução.';
@@ -48,108 +197,88 @@ export const pdfService = {
     const ticketSugerido = idea.suggestedPrice || 'R$ 47,00';
     const formato = idea.format || 'E-book Guia (PDF)';
 
-    // Barra de Topo Editorial
-    doc.setFillColor(...PALETTE.primary);
-    doc.rect(0, 0, pageWidth, 12, 'F');
-
+    // Cabeçalho da Marca
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
-    doc.setTextColor(255, 255, 255);
-    doc.text('TRENDPDF STUDIO  •  BRIEFING ESTRATÉGICO EXECUTIVO  •  EDIÇÃO 2026', margin, 8);
-
-    y = 22;
-
-    // Badges de Metadados
-    doc.setFillColor(...PALETTE.primaryLight);
-    doc.roundedRect(margin, y, 68, 7, 2, 2, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(...PALETTE.primary);
-    doc.text(formato, margin + 4, y + 5);
+    doc.setTextColor(...PALETTE.terracotta);
+    doc.text('TRENDPDF STUDIO  •  BRIEFING EDITORIAL ESTRATÉGICO', margin, y);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(...PALETTE.slate500);
-    doc.text(`ID: ${idea.id || 'INF-AI'}  |  Score Preditivo: ${idea.score || '9.4'}/10`, pageWidth - margin - 58, y + 5);
+    doc.setTextColor(...PALETTE.slateMuted);
+    doc.text(`ID: ${idea.id || 'INF-AI'}  |  Score: ${idea.score || '9.4'}/10`, pageWidth - margin - 52, y);
 
-    y += 13;
+    y += 8;
 
-    // Título Principal
+    // Card Principal do Título
+    doc.setFillColor(...PALETTE.cardWhite);
+    doc.roundedRect(margin, y, contentWidth, 36, 3, 3, 'F');
+    doc.setDrawColor(...PALETTE.borderLight);
+    doc.roundedRect(margin, y, contentWidth, 36, 3, 3, 'D');
+
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.setTextColor(...PALETTE.slate900);
-    const splitTitle = doc.splitTextToSize(tituloEstrategico, contentWidth);
-    doc.text(splitTitle, margin, y);
-    y += splitTitle.length * 7.5 + 4;
+    doc.setFontSize(16);
+    doc.setTextColor(...PALETTE.navyDark);
+    const splitTitle = doc.splitTextToSize(tituloEstrategico, contentWidth - 12);
+    doc.text(splitTitle, margin + 6, y + 10);
 
-    // Resumo Persuasivo
-    if (idea.description) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9.8);
-      doc.setTextColor(...PALETTE.slate700);
-      const splitDesc = doc.splitTextToSize(idea.description, contentWidth);
-      doc.text(splitDesc, margin, y);
-      y += splitDesc.length * 5.2 + 6;
-    }
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...PALETTE.slateDark);
+    const descText = idea.description || 'Infoproduto completo validado com inteligência de mercado.';
+    const splitDesc = doc.splitTextToSize(descText, contentWidth - 12);
+    doc.text(splitDesc, margin + 6, y + 22);
 
-    doc.setDrawColor(...PALETTE.border);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 7;
+    y += 42;
 
-    // Box: Dor Central Resolvida
-    const splitPain = doc.splitTextToSize(dorResolvida, contentWidth - 16);
-    const painBoxHeight = 14 + (splitPain.length * 5);
-    doc.setFillColor(...PALETTE.slate100);
-    doc.roundedRect(margin, y, contentWidth, painBoxHeight, 2.5, 2.5, 'F');
-    doc.setDrawColor(...PALETTE.border);
-    doc.roundedRect(margin, y, contentWidth, painBoxHeight, 2.5, 2.5, 'D');
-
-    // Faixa lateral
-    doc.setFillColor(...PALETTE.primary);
-    doc.roundedRect(margin, y, 3, painBoxHeight, 1.5, 1.5, 'F');
+    // Card: Proposta de Valor / Dor Resolvida
+    doc.setFillColor(...PALETTE.peachBg);
+    doc.roundedRect(margin, y, contentWidth, 24, 2.5, 2.5, 'F');
+    doc.setDrawColor(254, 215, 170);
+    doc.roundedRect(margin, y, contentWidth, 24, 2.5, 2.5, 'D');
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
-    doc.setTextColor(...PALETTE.primaryDark);
-    doc.text('DOR AGUDA RESOLVIDA (PROPOSTA DE VALOR CENTRAL):', margin + 7, y + 6.5);
+    doc.setTextColor(...PALETTE.terracotta);
+    doc.text('🎯 DOR CENTRAL RESOLVIDA:', margin + 6, y + 7);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.5);
-    doc.setTextColor(...PALETTE.slate800);
-    doc.text(splitPain, margin + 7, y + 12.5);
+    doc.setFontSize(9);
+    doc.setTextColor(...PALETTE.navyDark);
+    const splitPain = doc.splitTextToSize(dorResolvida, contentWidth - 12);
+    doc.text(splitPain, margin + 6, y + 14);
 
-    y += painBoxHeight + 7;
+    y += 30;
 
-    // Métricas: Público e Preço
-    doc.setFillColor(...PALETTE.slate100);
+    // Card de Métricas: Público e Preço
+    doc.setFillColor(...PALETTE.cardWhite);
     doc.roundedRect(margin, y, contentWidth, 14, 2, 2, 'F');
-    doc.setDrawColor(...PALETTE.border);
+    doc.setDrawColor(...PALETTE.borderLight);
     doc.roundedRect(margin, y, contentWidth, 14, 2, 2, 'D');
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(...PALETTE.slate500);
+    doc.setFontSize(8);
+    doc.setTextColor(...PALETTE.slateMuted);
     doc.text('PÚBLICO-ALVO:', margin + 6, y + 8.5);
 
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...PALETTE.slate800);
+    doc.setTextColor(...PALETTE.navyDark);
     doc.text(publicoAlvo, margin + 32, y + 8.5);
 
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...PALETTE.slate500);
-    doc.text('TICKET SUGERIDO:', margin + 105, y + 8.5);
+    doc.setTextColor(...PALETTE.slateMuted);
+    doc.text('TICKET SUGERIDO:', margin + 110, y + 8.5);
 
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...PALETTE.primaryDark);
-    doc.text(ticketSugerido, margin + 138, y + 8.5);
+    doc.setTextColor(...PALETTE.terracotta);
+    doc.text(ticketSugerido, margin + 142, y + 8.5);
 
     y += 20;
 
-    // Sumário dos 10 Capítulos
+    // Estrutura de Capítulos
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(...PALETTE.slate900);
+    doc.setFontSize(11);
+    doc.setTextColor(...PALETTE.navyDark);
     doc.text('ESTRUTURA EDITORIAL SUGERIDA (10 CAPÍTULOS)', margin, y);
     y += 7;
 
@@ -157,24 +286,24 @@ export const pdfService = {
       sumarioCapitulos.forEach((chap, idx) => {
         if (y > pageHeight - 25) {
           doc.addPage();
-          doc.setFillColor(...PALETTE.primary);
-          doc.rect(0, 0, pageWidth, 8, 'F');
+          doc.setFillColor(...PALETTE.bgCanvas);
+          doc.rect(0, 0, pageWidth, pageHeight, 'F');
           y = 20;
         }
 
         const num = chap.number || idx + 1;
         const chapTitle = chap.title || (typeof chap === 'string' ? chap : `Capítulo ${num}`);
 
-        doc.setFillColor(...PALETTE.primaryLight);
+        doc.setFillColor(...PALETTE.terracottaLight);
         doc.roundedRect(margin, y - 3.8, 16, 5.5, 1.2, 1.2, 'F');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
-        doc.setTextColor(...PALETTE.primaryDark);
-        doc.text(`CAP ${num < 10 ? '0' + num : num}`, margin + 2, y);
+        doc.setTextColor(...PALETTE.terracotta);
+        doc.text(`CAP ${num < 10 ? '0' + num : num}`, margin + 2.2, y);
 
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9.5);
-        doc.setTextColor(...PALETTE.slate800);
+        doc.setFontSize(9);
+        doc.setTextColor(...PALETTE.slateDark);
         const titleSplit = doc.splitTextToSize(chapTitle, contentWidth - 22);
         doc.text(titleSplit, margin + 20, y);
 
@@ -187,8 +316,8 @@ export const pdfService = {
       doc.setPage(i);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(...PALETTE.slate400);
-      doc.setDrawColor(...PALETTE.border);
+      doc.setTextColor(...PALETTE.slateMuted);
+      doc.setDrawColor(...PALETTE.borderLight);
       doc.setLineWidth(0.2);
       doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
       doc.text(
@@ -211,10 +340,17 @@ export const pdfService = {
   },
 
   /**
-   * 2. Gera e compila o E-BOOK COMPLETO DIAGRAMADO de alta conversão,
-   * livre de sobreposições, texto vazando de blocos ou colisões de cabeçalho/rodapé.
+   * 2. Gera e compila o WORKBOOK & GUIA EDITORIAL DE LUXO completo,
+   * inspirado exatamente nas fotos de referência do usuário:
+   * - Fundo quente tipo papel de alta gramatura (#FAF8F5).
+   * - Capa com moldura em arco (Cathedral Arch) e fotografias de alta resolução.
+   * - Badge de capítulo no topo (CAP 01 / DAY 03 style).
+   * - Cards brancos sobre o canvas quente com passos numerados em círculos.
+   * - Split Cards de Dica Pro & Resolução de Travas.
+   * - Linhas pautadas de caderno reais para anotação.
+   * - Rastreador de hábitos com checkboxes no rodapé.
    */
-  generateFullEbookPDF: (idea, fullChapters = [], options = {}) => {
+  generateFullEbookPDF: async (idea, fullChapters = [], options = {}) => {
     if (!idea) {
       throw new Error('Nenhum dado de ideia fornecido para compilação do e-book.');
     }
@@ -227,354 +363,245 @@ export const pdfService = {
 
     const pageWidth = 210;
     const pageHeight = 297;
-    const margin = 24;
-    const contentWidth = pageWidth - margin * 2; // 162 mm
-
-    // Layout boundaries estritos para garantir 0 colisão com cabeçalho (y=16) e rodapé (y=281)
-    const layout = {
-      margin,
-      pageWidth,
-      pageHeight,
-      contentWidth,
-      minY: 26,     // Conteúdo sempre começa após o header
-      maxY: 274,    // Conteúdo NUNCA ultrapassa 274mm (7mm antes da linha do rodapé em 281mm)
-    };
-
-    const cursor = { y: layout.minY };
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2; // 170 mm
 
     const bookTitle = idea.titulo_estrategico || idea.title || 'Infoproduto em PDF';
     const subtitle = idea.description || idea.corePain || 'Guia Prático Passo a Passo de Implementação Rápida';
     const authorName = options.authorName || 'TrendPDF Studio';
 
-    // ==========================================
-    // MOTOR DE FLUXO TIPOGRÁFICO À PROVA DE VAZAMENTOS
-    // ==========================================
+    // Carrega as fotos temáticas de alta resolução em paralelo
+    const imageTheme = getThematicImages(idea.niche || idea.category, idea.category, bookTitle);
+    const [imgCoverLeft, imgCoverCenter, imgCoverRight] = await Promise.all([
+      loadFramedImage(imageTheme.coverLeft, 380, 500, 16, false),
+      loadFramedImage(imageTheme.coverCenter, 440, 580, 20, true), // Cathedral Arch central!
+      loadFramedImage(imageTheme.coverRight, 380, 500, 16, false),
+    ]);
 
-    /**
-     * Renderiza parágrafos divididos linha por linha com quebra de página automática.
-     * NUNCA permite que o texto vaze sobre o rodapé ou fora da página.
-     */
-    function renderParagraphs(text, opts = {}) {
-      if (!text) return;
-      const {
-        fontSize = 10,
-        fontStyle = 'normal',
-        textColor = PALETTE.slate700,
-        lineHeight = 5.2,
-        paragraphSpacing = 4.5,
-        maxWidth = layout.contentWidth,
-        x = layout.margin,
-      } = opts;
-
-      doc.setFont('helvetica', fontStyle);
-      doc.setFontSize(fontSize);
-      doc.setTextColor(...textColor);
-
-      const paragraphs = text.split(/\r?\n\s*\r?\n/).filter((p) => p.trim().length > 0);
-
-      paragraphs.forEach((paragraph, pIdx) => {
-        const lines = doc.splitTextToSize(paragraph.trim(), maxWidth);
-
-        lines.forEach((line) => {
-          if (cursor.y + lineHeight > layout.maxY) {
-            doc.addPage();
-            cursor.y = layout.minY;
-            doc.setFont('helvetica', fontStyle);
-            doc.setFontSize(fontSize);
-            doc.setTextColor(...textColor);
-          }
-          doc.text(line, x, cursor.y);
-          cursor.y += lineHeight;
-        });
-
-        if (pIdx < paragraphs.length - 1) {
-          if (cursor.y + paragraphSpacing <= layout.maxY) {
-            cursor.y += paragraphSpacing;
-          }
-        }
-      });
-    }
-
-    /**
-     * Renderiza subtítulos de seção com proteção contra linhas órfãs (widow/orphan prevention).
-     * Se o título não couber com pelo menos 3 linhas de texto na página atual, força nova página.
-     */
-    function renderHeading(title, opts = {}) {
-      if (!title) return;
-      const {
-        fontSize = 12.5,
-        fontStyle = 'bold',
-        textColor = PALETTE.slate800,
-        lineHeight = 6.2,
-        spacingBefore = 7,
-        spacingAfter = 3.5,
-        minRemainingSpace = 30,
-        maxWidth = layout.contentWidth,
-        x = layout.margin,
-      } = opts;
-
-      if (cursor.y > layout.minY + 2) {
-        cursor.y += spacingBefore;
-      }
-
-      const lines = doc.splitTextToSize(title, maxWidth);
-      const headingHeight = lines.length * lineHeight;
-
-      if (cursor.y + headingHeight + minRemainingSpace > layout.maxY) {
-        doc.addPage();
-        cursor.y = layout.minY;
-      }
-
-      doc.setFont('helvetica', fontStyle);
-      doc.setFontSize(fontSize);
-      doc.setTextColor(...textColor);
-
-      lines.forEach((line) => {
-        doc.text(line, x, cursor.y);
-        cursor.y += lineHeight;
-      });
-
-      cursor.y += spacingAfter;
-    }
-
-    /**
-     * Renderiza caixas de destaque (Exercício Prático ou Síntese) com altura dinâmica
-     * calculada exatamente com base nas linhas de texto reais, impedindo que o texto
-     * vaze para fora da moldura.
-     */
-    function renderCalloutBox(config) {
-      const {
-        badge = '',
-        content = '',
-        type = 'exercise',
-        maxWidth = layout.contentWidth,
-        x = layout.margin,
-      } = config;
-
-      if (!content) return;
-
-      const theme = type === 'exercise' ? {
-        bg: PALETTE.emeraldLight,
-        border: [187, 247, 208],
-        accent: PALETTE.emerald,
-        badgeColor: [21, 128, 61],
-        textColor: PALETTE.slate800,
-        icon: '•',
-        badgeText: badge || 'EXERCÍCIO DE IMPLEMENTAÇÃO IMEDIATA (5-10 MIN)',
-      } : {
-        bg: PALETTE.primaryLight,
-        border: [224, 231, 255],
-        accent: PALETTE.primary,
-        badgeColor: PALETTE.primaryDark,
-        textColor: PALETTE.slate800,
-        icon: '★',
-        badgeText: badge || 'SÍNTESE & REGRA DE OURO',
-      };
-
-      const paddingX = 8;
-      const paddingY = 6;
-      const textInnerWidth = maxWidth - (paddingX * 2) - 4; // Reserva espaço da faixa lateral esquerda
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9.5);
-      const textLines = doc.splitTextToSize(content.trim(), textInnerWidth);
-      const textLineHeight = 5.1;
-      const badgeHeight = 6.5;
-      const totalBoxHeight = paddingY + badgeHeight + (textLines.length * textLineHeight) + paddingY + 1;
-
-      if (cursor.y > layout.minY + 2) {
-        cursor.y += 5;
-      }
-
-      // Se o bloco inteiro não couber na página atual, transporta-o de forma limpa para a próxima página
-      if (cursor.y + totalBoxHeight > layout.maxY) {
-        doc.addPage();
-        cursor.y = layout.minY;
-      }
-
-      const boxY = cursor.y;
-
-      // Fundo suave
-      doc.setFillColor(...theme.bg);
-      doc.roundedRect(x, boxY, maxWidth, totalBoxHeight, 2.5, 2.5, 'F');
-
-      // Contorno suave
-      doc.setDrawColor(...theme.border);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(x, boxY, maxWidth, totalBoxHeight, 2.5, 2.5, 'D');
-
-      // Faixa lateral esquerda sólida com acabamento arredondado executivo
-      doc.setFillColor(...theme.accent);
-      doc.roundedRect(x, boxY, 3.5, totalBoxHeight, 1.5, 1.5, 'F');
-
-      // Título do Badge
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(...theme.badgeColor);
-      doc.text(`${theme.icon}  ${theme.badgeText.toUpperCase()}`, x + paddingX + 2, boxY + paddingY + 3.5);
-
-      // Texto interno proporcional e contido
-      doc.setFont('helvetica', type === 'takeaway' ? 'italic' : 'normal');
-      doc.setFontSize(9.5);
-      doc.setTextColor(...theme.textColor);
-
-      let currentTextY = boxY + paddingY + badgeHeight + 2.5;
-      textLines.forEach((line) => {
-        doc.text(line, x + paddingX + 2, currentTextY);
-        currentTextY += textLineHeight;
-      });
-
-      cursor.y = boxY + totalBoxHeight + 6;
+    function fillCanvas() {
+      doc.setFillColor(...PALETTE.bgCanvas);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
     }
 
     // ==========================================
-    // PÁGINA 1: CAPA PROFISSIONAL E MODERNA
+    // PÁGINA 1: CAPA EDITORIAL DE LUXO (FOTO 5 - THE SMOOTHIE BOOK)
     // ==========================================
-    doc.setFillColor(...PALETTE.slate900);
-    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+    fillCanvas();
 
-    // Cabeçalho gráfico escuro com transição elegante
-    doc.setFillColor(24, 34, 60);
-    doc.rect(0, 0, pageWidth, 80, 'F');
-
-    // Faixa dupla decorativa moderna
-    doc.setFillColor(...PALETTE.primary);
-    doc.rect(0, 78, pageWidth, 2.5, 'F');
-
-    doc.setFillColor(...PALETTE.emerald);
-    doc.rect(margin, 78, 45, 2.5, 'F');
-
-    // Badge Superior da Capa
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(...PALETTE.emerald);
-    doc.text('TRENDPDF STUDIO  •  ESTÚDIO DE INFOPRODUTOS ESTRATÉGICOS', margin, 32);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(203, 213, 225);
-    doc.text(`COLEÇÃO EXCLUSIVA • EDIÇÃO ${new Date().getFullYear()}`, margin, 42);
-
-    // Título Principal da Obra
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(24);
-    doc.setTextColor(255, 255, 255);
-    const splitTitle = doc.splitTextToSize(bookTitle, contentWidth);
-    let coverY = 110;
-    doc.text(splitTitle, margin, coverY);
-    coverY += splitTitle.length * 9.5 + 8;
-
-    // Divisor de Destaque
-    doc.setFillColor(...PALETTE.emerald);
-    doc.roundedRect(margin, coverY, 35, 1.5, 0.75, 0.75, 'F');
-    coverY += 12;
-
-    // Subtítulo / Descrição Persuasiva
+    // Topo Editorial Minimalista
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-    doc.setTextColor(203, 213, 225);
-    const splitSub = doc.splitTextToSize(subtitle, contentWidth);
-    doc.text(splitSub, margin, coverY);
-    coverY += splitSub.length * 6 + 14;
+    doc.setFontSize(8);
+    doc.setTextColor(...PALETTE.slateMuted);
+    doc.text('PRINTABLE WORKBOOK & ACTION GUIDE', margin, 18);
+    doc.text('EDIÇÃO EXCLUSIVA • 2026', pageWidth - margin - 42, 18);
 
-    // Badges de Recursos do Livro
-    const pills = ['10 CAPÍTULOS PRÁTICOS', 'EXERCÍCIOS DE AÇÃO', 'MÉTODO PASSO A PASSO'];
+    // Galeria de 3 Molduras de Fotos (Esquerda, Centro com Arco e Direita)
+    const galleryY = 26;
+    const wSide = 48;
+    const hSide = 64;
+    const wCenter = 58;
+    const hCenter = 76;
+
+    // Foto Esquerda (Arredondada)
+    if (imgCoverLeft) {
+      doc.addImage(imgCoverLeft, 'JPEG', margin, galleryY + 6, wSide, hSide);
+    } else {
+      doc.setFillColor(236, 231, 223);
+      doc.roundedRect(margin, galleryY + 6, wSide, hSide, 3.5, 3.5, 'F');
+    }
+    doc.setDrawColor(...PALETTE.borderLight);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(margin, galleryY + 6, wSide, hSide, 3.5, 3.5, 'D');
+
+    // Foto Centro (Arco Catedral - Cathedral Arch)
+    const centerX = margin + wSide + 8;
+    if (imgCoverCenter) {
+      doc.addImage(imgCoverCenter, 'JPEG', centerX, galleryY, wCenter, hCenter);
+    } else {
+      doc.setFillColor(228, 222, 212);
+      doc.roundedRect(centerX, galleryY, wCenter, hCenter, 4, 4, 'F');
+    }
+    doc.setDrawColor(...PALETTE.borderLight);
+    doc.roundedRect(centerX, galleryY, wCenter, hCenter, 4, 4, 'D');
+
+    // Foto Direita (Arredondada)
+    const rightX = centerX + wCenter + 8;
+    if (imgCoverRight) {
+      doc.addImage(imgCoverRight, 'JPEG', rightX, galleryY + 6, wSide, hSide);
+    } else {
+      doc.setFillColor(236, 231, 223);
+      doc.roundedRect(rightX, galleryY + 6, wSide, hSide, 3.5, 3.5, 'F');
+    }
+    doc.setDrawColor(...PALETTE.borderLight);
+    doc.roundedRect(rightX, galleryY + 6, wSide, hSide, 3.5, 3.5, 'D');
+
+    // Kicker Script / Cursivo Suave
+    let curY = galleryY + hCenter + 15;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(11);
+    doc.setTextColor(...PALETTE.berryAccent);
+    doc.text('seu guia prático de transformação diária', margin, curY);
+    curY += 8;
+
+    // Título Principal
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(23);
+    doc.setTextColor(...PALETTE.navyDark);
+    const splitBookTitle = doc.splitTextToSize(bookTitle, contentWidth);
+    doc.text(splitBookTitle, margin, curY);
+    curY += splitBookTitle.length * 8.5 + 4;
+
+    // Subtítulo
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10.5);
+    doc.setTextColor(...PALETTE.slateDark);
+    const splitSub = doc.splitTextToSize(subtitle, contentWidth);
+    doc.text(splitSub, margin, curY);
+    curY += splitSub.length * 5.5 + 8;
+
+    // Pílulas de Categoria (Pills da Foto 5)
+    const pills = ['10 Capítulos Práticos', 'Exercícios Diários', 'Linhas de Ação', 'Método Validado'];
     let pillX = margin;
     pills.forEach((pText) => {
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      const pWidth = doc.getTextWidth(pText) + 8;
-      doc.setFillColor(30, 41, 59);
-      doc.roundedRect(pillX, coverY, pWidth, 7, 1.5, 1.5, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.text(pText, pillX + 4, coverY + 4.8);
-      pillX += pWidth + 4;
+      doc.setFontSize(8);
+      const pw = doc.getTextWidth(pText) + 8;
+      doc.setFillColor(...PALETTE.peachBg);
+      doc.roundedRect(pillX, curY, pw, 6.5, 1.5, 1.5, 'F');
+      doc.setTextColor(...PALETTE.terracotta);
+      doc.text(pText, pillX + 4, curY + 4.5);
+      pillX += pw + 4;
     });
 
-    // Card do Autor & Selo no Rodapé da Capa
-    doc.setFillColor(20, 29, 47);
-    doc.roundedRect(margin, pageHeight - 48, contentWidth, 26, 3, 3, 'F');
-    doc.setDrawColor(40, 53, 80);
-    doc.roundedRect(margin, pageHeight - 48, contentWidth, 26, 3, 3, 'D');
+    // Barra do Autor & Direitos no Rodapé da Capa
+    doc.setDrawColor(...PALETTE.borderLight);
+    doc.setLineWidth(0.3);
+    doc.line(margin, pageHeight - 24, pageWidth - margin, pageHeight - 24);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`Autor: ${authorName}`, margin + 8, pageHeight - 34);
+    doc.setFontSize(9);
+    doc.setTextColor(...PALETTE.navyDark);
+    doc.text(`Autor: ${authorName}`, margin, pageHeight - 17);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(...PALETTE.slate400);
-    doc.text('Auditoria de Demanda & Validação Editorial Inteligente  •  Distribuição Autorizada', margin + 8, pageHeight - 27);
+    doc.setTextColor(...PALETTE.slateMuted);
+    doc.text('TrendPDF Studio Editorial  •  Workbook Interativo', pageWidth - margin - 65, pageHeight - 17);
 
     // ==========================================
-    // PÁGINA 2: APRESENTAÇÃO & FICHA EDITORIAL
-    // (Sem repetição do cabeçalho de título!)
+    // PÁGINA 2: APRESENTAÇÃO & GUIA DE APROVEITAMENTO
     // ==========================================
     doc.addPage();
-    cursor.y = layout.minY + 4;
+    fillCanvas();
+
+    let p2Y = 22;
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.setTextColor(...PALETTE.slate900);
-    doc.text('Apresentação & Como Usar Este Livro', margin, cursor.y);
-    cursor.y += 10;
+    doc.setTextColor(...PALETTE.navyDark);
+    doc.text('Apresentação & Como Usar Este Workbook', margin, p2Y);
+    p2Y += 10;
 
-    renderParagraphs(
-      `Este material foi concebido com uma premissa clara: entregar uma experiência prática, direta e de alta transformação para o seu dia a dia. Ao contrário de obras densas e teóricas que ficam esquecidas na estante, cada linha deste livro foi arquitetada para solucionar de forma prática a dor de "${idea.dor_resolvida || idea.corePain || 'obter resultados claros'}" de maneira imediata.\n\nRecomendamos que você aplique os conceitos em ritmo de imersão. Ao final de cada um dos 10 capítulos, você encontrará um exercício de ação rápida e a síntese da regra de ouro. Se você dedicar de 5 a 10 minutos para executar a atividade sugerida, verá os resultados se consolidarem com leveza e precisão.`,
-      { fontSize: 10, lineHeight: 5.4, paragraphSpacing: 4.5 }
+    // Texto Introdutório
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.8);
+    doc.setTextColor(...PALETTE.slateDark);
+    const introLines = doc.splitTextToSize(
+      `Este material foi concebido com uma premissa clara: entregar uma experiência prática, direta e de alta transformação para o seu dia a dia. Ao contrário de livros densos e puramente teóricos que ficam esquecidos na gaveta, cada página deste workbook foi desenhada para resolver a dor de "${idea.dor_resolvida || idea.corePain || 'alcançar resultados claros'}" de maneira imediata.\n\nPara extrair 100% de resultado, recomendamos que você dedique de 10 a 15 minutos por capítulo. Leia os passos numerados, execute o exercício de ação imediata e escreva suas conclusões diretamente no espaço pautado de anotações.`,
+      contentWidth
     );
+    doc.text(introLines, margin, p2Y);
+    p2Y += introLines.length * 5.2 + 8;
 
-    cursor.y += 6;
-
-    // Ficha Técnica Editorial Estruturada
-    const cardY = cursor.y;
-    const cardHeight = 62;
-    doc.setFillColor(...PALETTE.slate100);
-    doc.roundedRect(margin, cardY, contentWidth, cardHeight, 3, 3, 'F');
-    doc.setDrawColor(...PALETTE.border);
-    doc.roundedRect(margin, cardY, contentWidth, cardHeight, 3, 3, 'D');
-
-    // Faixa lateral Indigo
-    doc.setFillColor(...PALETTE.primary);
-    doc.roundedRect(margin, cardY, 3, cardHeight, 1.5, 1.5, 'F');
+    // Card das 3 Regras de Ouro (Estilo Foto 1 & 3)
+    doc.setFillColor(...PALETTE.cardWhite);
+    doc.roundedRect(margin, p2Y, contentWidth, 54, 3, 3, 'F');
+    doc.setDrawColor(...PALETTE.borderLight);
+    doc.roundedRect(margin, p2Y, contentWidth, 54, 3, 3, 'D');
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9.5);
-    doc.setTextColor(...PALETTE.primaryDark);
-    doc.text('FICHA CATALOGRÁFICA & METADADOS DA EDIÇÃO', margin + 8, cardY + 9);
+    doc.setTextColor(...PALETTE.terracotta);
+    doc.text('★  AS 3 REGRAS DE OURO PARA MÁXIMO RESULTADO', margin + 8, p2Y + 9);
 
-    const metaRows = [
-      ['Título da Obra:', bookTitle],
-      ['Categoria & Mercado:', idea.category || 'Educação & Negócios'],
-      ['Público-Alvo Prioritário:', idea.targetAudience || 'Público Geral'],
-      ['Formato Editorial:', idea.format || 'E-book Guia de Aplicação Rápida'],
-      ['Licenciamento & Direitos:', 'Licenciado para estudo, uso pessoal e implementação profissional.'],
+    const rules = [
+      ['1. Leitura Focada:', 'Leia um capítulo por dia sem pressa, prestando atenção nos gatilhos dos passos numerados.'],
+      ['2. Aplicação Imediata:', 'Nunca pule o exercício prático: preencha as linhas de anotação com sua própria caneta.'],
+      ['3. Acompanhamento Contínuo:', 'Marque os checkboxes no rodapé para consolidar a sensação de progresso diário.'],
     ];
 
-    let metaY = cardY + 18;
-    metaRows.forEach(([lbl, val]) => {
+    let rY = p2Y + 18;
+    rules.forEach(([title, desc]) => {
+      doc.setFillColor(...PALETTE.terracotta);
+      doc.circle(margin + 11, rY - 0.5, 3.2, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(title.charAt(0), margin + 10, rY + 0.6);
+
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
-      doc.setTextColor(...PALETTE.slate800);
-      doc.text(lbl, margin + 8, metaY);
+      doc.setTextColor(...PALETTE.navyDark);
+      doc.text(title, margin + 17, rY);
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
-      doc.setTextColor(...PALETTE.slate700);
-      const splitVal = doc.splitTextToSize(val, contentWidth - 55);
-      doc.text(splitVal, margin + 50, metaY);
-      metaY += Math.max(7, splitVal.length * 4.5 + 2);
+      doc.setTextColor(...PALETTE.slateDark);
+      const splitDesc = doc.splitTextToSize(desc, contentWidth - 62);
+      doc.text(splitDesc, margin + 55, rY);
+
+      rY += Math.max(8, splitDesc.length * 4.5 + 3);
+    });
+
+    p2Y += 62;
+
+    // Ficha Técnica Editorial
+    doc.setFillColor(...PALETTE.cardWhite);
+    doc.roundedRect(margin, p2Y, contentWidth, 52, 3, 3, 'F');
+    doc.setDrawColor(...PALETTE.borderLight);
+    doc.roundedRect(margin, p2Y, contentWidth, 52, 3, 3, 'D');
+
+    doc.setFillColor(...PALETTE.terracotta);
+    doc.roundedRect(margin, p2Y, 3, 52, 1.5, 1.5, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...PALETTE.navyDark);
+    doc.text('FICHA TÉCNICA EDITORIAL & METADADOS', margin + 8, p2Y + 9);
+
+    const metaData = [
+      ['Título da Obra:', bookTitle],
+      ['Categoria & Mercado:', idea.category || 'Educação & Negócios'],
+      ['Público Prioritário:', idea.targetAudience || 'Público Geral'],
+      ['Formato de Distribuição:', 'Workbook Interativo com Linhas de Anotação (PDF)'],
+      ['Licenciamento:', 'Licenciado para estudo pessoal e implementação profissional.'],
+    ];
+
+    let mY = p2Y + 17;
+    metaData.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(...PALETTE.slateMuted);
+      doc.text(label, margin + 8, mY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...PALETTE.navyDark);
+      const valSplit = doc.splitTextToSize(value, contentWidth - 55);
+      doc.text(valSplit, margin + 48, mY);
+
+      mY += Math.max(6.5, valSplit.length * 4.2 + 2);
     });
 
     // ==========================================
-    // PÁGINA 3: SUMÁRIO GERAL (RESERVADA PARA PREENCHIMENTO REAL)
+    // PÁGINA 3: SUMÁRIO & ROADMAP VISUAL (FOTO 2 - YOUR PLAN)
     // ==========================================
     doc.addPage();
+    fillCanvas();
     const tocPageIndex = 3;
 
     // ==========================================
-    // PÁGINAS 4+: CONTEÚDO DOS CAPÍTULOS
+    // PÁGINAS 4+: CAPÍTULOS NO FORMATO WORKBOOK (2 PÁGINAS POR CAPÍTULO)
     // ==========================================
     const chaptersToRender = (fullChapters && fullChapters.length > 0)
       ? fullChapters
@@ -583,166 +610,331 @@ export const pdfService = {
     const chapterStarts = {};
 
     chaptersToRender.forEach((ch, idx) => {
-      doc.addPage();
-      cursor.y = layout.minY + 2;
-
       const num = ch.chapterNumber || ch.number || idx + 1;
       const title = ch.chapterTitle || ch.title || `Capítulo ${num}`;
+
+      // ------------------------------------------
+      // SUB-PÁGINA 1: CONCEITO & PASSOS NUMERADOS (FOTO 3/4)
+      // ------------------------------------------
+      doc.addPage();
+      fillCanvas();
       chapterStarts[num] = doc.internal.getCurrentPageInfo().pageNumber;
 
-      // Badge do Capítulo
-      doc.setFillColor(...PALETTE.primaryLight);
-      doc.roundedRect(margin, cursor.y, 28, 6.5, 1.5, 1.5, 'F');
+      let y = 18;
+
+      // Badge de Capítulo no Canto Esquerdo (Estilo DAY 03)
+      const badgeW = 22;
+      const badgeH = 20;
+      doc.setFillColor(...PALETTE.terracotta);
+      doc.roundedRect(margin, y, badgeW, badgeH, 3, 3, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(255, 255, 255);
+      doc.text('CAPÍTULO', margin + 3.2, y + 6);
+      doc.setFontSize(14);
+      doc.text(num < 10 ? `0${num}` : `${num}`, margin + 4.8, y + 15);
+
+      // Título e Módulo ao lado do Badge
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
-      doc.setTextColor(...PALETTE.primaryDark);
-      doc.text(`CAPÍTULO ${num < 10 ? '0' + num : num}`, margin + 3.5, cursor.y + 4.5);
-      cursor.y += 11;
+      doc.setTextColor(...PALETTE.terracotta);
+      doc.text(`MÓDULO ${Math.ceil(num / 2)} • IMPLEMENTAÇÃO PRÁTICA`, margin + badgeW + 5, y + 5);
 
-      // Título do Capítulo
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.setTextColor(...PALETTE.slate900);
-      const splitChTitle = doc.splitTextToSize(title, contentWidth);
-      doc.text(splitChTitle, margin, cursor.y);
-      cursor.y += splitChTitle.length * 7.5 + 4;
+      doc.setFontSize(15);
+      doc.setTextColor(...PALETTE.navyDark);
+      const splitChTitle = doc.splitTextToSize(title, contentWidth - badgeW - 6);
+      doc.text(splitChTitle, margin + badgeW + 5, y + 12);
 
-      // Linha de Respiro
-      doc.setDrawColor(...PALETTE.border);
+      y += Math.max(badgeH, splitChTitle.length * 6 + 10) + 4;
+
+      // Card do Objetivo (Goal Banner - Foto 3/4)
+      doc.setFillColor(...PALETTE.peachBg);
+      doc.roundedRect(margin, y, contentWidth, 11, 2.5, 2.5, 'F');
+      doc.setDrawColor(254, 215, 170);
       doc.setLineWidth(0.3);
-      doc.line(margin, cursor.y, margin + contentWidth, cursor.y);
-      cursor.y += 7;
+      doc.roundedRect(margin, y, contentWidth, 11, 2.5, 2.5, 'D');
 
-      // Introdução do Capítulo
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(...PALETTE.terracotta);
+      doc.text('🎯 Meta do Capítulo:', margin + 4, y + 7);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...PALETTE.navyDark);
+      const shortGoal = (ch.keyTakeaway || ch.introduction || 'Dominar a estratégia central deste passo e agir com clareza.').slice(0, 85);
+      doc.text(shortGoal, margin + 35, y + 7);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...PALETTE.slateMuted);
+      doc.text('⏱ 15 min de ação', pageWidth - margin - 30, y + 7);
+
+      y += 16;
+
+      // Card da Introdução Contextual
       if (ch.introduction) {
-        renderParagraphs(ch.introduction, {
-          fontSize: 10,
-          textColor: PALETTE.slate800,
-          lineHeight: 5.3,
-          paragraphSpacing: 4.5,
-        });
+        doc.setFillColor(...PALETTE.cardWhite);
+        const introP = doc.splitTextToSize(ch.introduction, contentWidth - 14);
+        const introH = Math.min(50, introP.length * 4.8 + 12);
+        doc.roundedRect(margin, y, contentWidth, introH, 3, 3, 'F');
+        doc.setDrawColor(...PALETTE.borderLight);
+        doc.roundedRect(margin, y, contentWidth, introH, 3, 3, 'D');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(...PALETTE.terracotta);
+        doc.text('O CENÁRIO & A VIRADA DE CHAVE:', margin + 7, y + 8);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...PALETTE.slateDark);
+        doc.text(introP.slice(0, 8), margin + 7, y + 15);
+
+        y += introH + 6;
       }
 
-      // Seções do Capítulo
+      // Seções com Passos Numerados em Círculos (Foto 1, 3 e 4)
       if (ch.sections && Array.isArray(ch.sections)) {
-        ch.sections.forEach((sec) => {
-          if (sec.subtitle) {
-            renderHeading(sec.subtitle, {
-              fontSize: 12,
-              textColor: PALETTE.slate900,
-              spacingBefore: 8,
-              spacingAfter: 3.5,
-              minRemainingSpace: 28,
-            });
-          }
+        ch.sections.slice(0, 2).forEach((sec, sIdx) => {
+          const stepNum = sIdx + 1;
+          const bodySplit = doc.splitTextToSize(sec.body || '', contentWidth - 14);
+          const stepH = Math.min(55, bodySplit.length * 4.8 + 20);
 
-          if (sec.body) {
-            renderParagraphs(sec.body, {
-              fontSize: 9.8,
-              textColor: PALETTE.slate700,
-              lineHeight: 5.2,
-              paragraphSpacing: 4,
-            });
-          }
+          doc.setFillColor(...PALETTE.cardWhite);
+          doc.roundedRect(margin, y, contentWidth, stepH, 3, 3, 'F');
+          doc.setDrawColor(...PALETTE.borderLight);
+          doc.roundedRect(margin, y, contentWidth, stepH, 3, 3, 'D');
+
+          // Círculo numerado
+          doc.setFillColor(...PALETTE.terracotta);
+          doc.circle(margin + 7, y + 9, 3.5, 'F');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(8);
+          doc.setTextColor(255, 255, 255);
+          doc.text(`${stepNum}`, margin + 6, y + 10.2);
+
+          // Título da Seção
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(10);
+          doc.setTextColor(...PALETTE.navyDark);
+          const subTitle = doc.splitTextToSize(sec.subtitle || `Passo ${stepNum}`, contentWidth - 20);
+          doc.text(subTitle[0] || '', margin + 14, y + 10.5);
+
+          // Texto
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8.8);
+          doc.setTextColor(...PALETTE.slateDark);
+          doc.text(bodySplit.slice(0, 7), margin + 7, y + 18);
+
+          y += stepH + 5;
         });
       }
 
-      // Bloco do Exercício Prático
+      // ------------------------------------------
+      // SUB-PÁGINA 2: EXERCÍCIO, DICA PRO & LINHAS PAUTADAS (FOTOS 1, 3 E 4)
+      // ------------------------------------------
+      doc.addPage();
+      fillCanvas();
+
+      let y2 = 18;
+
+      // Header suave do Caderno de Prática
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(...PALETTE.terracotta);
+      doc.text(`CAPÍTULO ${num < 10 ? '0' + num : num}  •  CADERNO DE EXERCÍCIOS & PRÁTICA`, margin, y2);
+
+      doc.setDrawColor(...PALETTE.borderLight);
+      doc.setLineWidth(0.3);
+      doc.line(margin, y2 + 2, pageWidth - margin, y2 + 2);
+      y2 += 8;
+
+      // Card 1: Exercício Prático de Ação Imediata
       if (ch.practicalExercise) {
-        renderCalloutBox({
-          badge: 'EXERCÍCIO PRÁTICO • AÇÃO IMEDIATA',
-          content: ch.practicalExercise,
-          type: 'exercise',
-        });
+        const exTextSplit = doc.splitTextToSize(ch.practicalExercise, contentWidth - 14);
+        const exBoxH = Math.max(30, exTextSplit.length * 5 + 14);
+
+        doc.setFillColor(...PALETTE.mintBg);
+        doc.roundedRect(margin, y2, contentWidth, exBoxH, 3, 3, 'F');
+        doc.setDrawColor(187, 247, 208);
+        doc.roundedRect(margin, y2, contentWidth, exBoxH, 3, 3, 'D');
+
+        doc.setFillColor(...PALETTE.mintAccent);
+        doc.roundedRect(margin, y2, 3.5, exBoxH, 1.5, 1.5, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(21, 128, 61);
+        doc.text('⚡ EXERCÍCIO PRÁTICO • AÇÃO IMEDIATA (5 A 10 MIN)', margin + 8, y2 + 8);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...PALETTE.navyDark);
+        doc.text(exTextSplit, margin + 8, y2 + 15);
+
+        y2 += exBoxH + 6;
       }
 
-      // Bloco da Síntese do Capítulo
-      if (ch.keyTakeaway) {
-        renderCalloutBox({
-          badge: 'SÍNTESE DO CAPÍTULO',
-          content: ch.keyTakeaway,
-          type: 'takeaway',
-        });
+      // Split Cards 2 Colunas: DICA PRO & SE VOCÊ TRAVAR (Foto 3/4)
+      const splitW = (contentWidth - 6) / 2;
+      const splitH = 36;
+
+      // Coluna Esquerda: DICA DE OURO
+      doc.setFillColor(...PALETTE.peachBg);
+      doc.roundedRect(margin, y2, splitW, splitH, 2.5, 2.5, 'F');
+      doc.setDrawColor(254, 215, 170);
+      doc.roundedRect(margin, y2, splitW, splitH, 2.5, 2.5, 'D');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(...PALETTE.terracotta);
+      doc.text('💡 DICA DE OURO (PRO TIP)', margin + 5, y2 + 7);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...PALETTE.slateDark);
+      const tipContent = ch.keyTakeaway || 'Regras claras e combinadas em casa antes de sair eliminam 95% do atrito emocional.';
+      const splitTip = doc.splitTextToSize(tipContent, splitW - 10);
+      doc.text(splitTip.slice(0, 4), margin + 5, y2 + 13);
+
+      // Coluna Direita: SE VOCÊ TRAVAR
+      doc.setFillColor(...PALETTE.cardWhite);
+      doc.roundedRect(margin + splitW + 6, y2, splitW, splitH, 2.5, 2.5, 'F');
+      doc.setDrawColor(...PALETTE.borderLight);
+      doc.roundedRect(margin + splitW + 6, y2, splitW, splitH, 2.5, 2.5, 'D');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(...PALETTE.navyDark);
+      doc.text('⚡ SE VOCÊ ENCONTRAR RESISTÊNCIA', margin + splitW + 11, y2 + 7);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...PALETTE.slateDark);
+      const fixContent = 'Não responda na mesma frequência emocional. Mantenha a serenidade inabalável e lembre o combinado prévio com carinho.';
+      const splitFix = doc.splitTextToSize(fixContent, splitW - 10);
+      doc.text(splitFix.slice(0, 4), margin + splitW + 11, y2 + 13);
+
+      y2 += splitH + 8;
+
+      // Seção de Linhas de Anotação & Ação (Ruled Lines - Foto 1, 3 e 4)
+      doc.setFillColor(...PALETTE.cardWhite);
+      doc.roundedRect(margin, y2, contentWidth, 44, 2.5, 2.5, 'F');
+      doc.setDrawColor(...PALETTE.borderLight);
+      doc.roundedRect(margin, y2, contentWidth, 44, 2.5, 2.5, 'D');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(...PALETTE.terracotta);
+      doc.text('📝 MINHAS ANOTAÇÕES & COMBINADOS DO DIA', margin + 6, y2 + 8);
+
+      // Linhas pautadas de caderno reais
+      let lineY = y2 + 16;
+      for (let l = 0; l < 4; l++) {
+        doc.setDrawColor(...PALETTE.lineRuled);
+        doc.setLineWidth(0.25);
+        doc.line(margin + 6, lineY, margin + contentWidth - 6, lineY);
+        lineY += 6.5;
       }
+
+      y2 += 52;
+
+      // Rastreador no Rodapé (Checkboxes & Avaliação do Dia - Foto 3/4)
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...PALETTE.slateMuted);
+
+      doc.setDrawColor(...PALETTE.slateLight);
+      doc.roundedRect(margin, y2 + 1, 3.5, 3.5, 0.5, 0.5, 'D');
+      doc.text('Leitura do Capítulo', margin + 5, y2 + 4);
+
+      doc.roundedRect(margin + 42, y2 + 1, 3.5, 3.5, 0.5, 0.5, 'D');
+      doc.text('Exercício Prático Concluído', margin + 47, y2 + 4);
+
+      doc.roundedRect(margin + 98, y2 + 1, 3.5, 3.5, 0.5, 0.5, 'D');
+      doc.text('Meta do Dia Cumprida', margin + 103, y2 + 4);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Avaliação: ★ ★ ★ ★ ★', pageWidth - margin - 35, y2 + 4);
     });
 
     // ==========================================
-    // RENDERIZAÇÃO DO SUMÁRIO NA PÁGINA 3 COM NÚMEROS REAIS
+    // PREENCHIMENTO DO SUMÁRIO (PÁGINA 3) COM NÚMEROS REAIS
     // ==========================================
     doc.setPage(tocPageIndex);
-    cursor.y = layout.minY + 4;
+    let sY = 22;
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.setTextColor(...PALETTE.slate900);
-    doc.text('Sumário Geral da Obra', margin, cursor.y);
-    cursor.y += 12;
+    doc.setTextColor(...PALETTE.navyDark);
+    doc.text('Seu Plano de Ação: Os 10 Capítulos', margin, sY);
+    sY += 12;
 
     chaptersToRender.forEach((ch, idx) => {
       const num = ch.chapterNumber || ch.number || idx + 1;
       const title = ch.chapterTitle || ch.title || `Capítulo ${num}`;
-      const pageNum = chapterStarts[num] || (4 + idx);
+      const pageNum = chapterStarts[num] || (4 + idx * 2);
 
       // Pill CAP
-      doc.setFillColor(...PALETTE.primaryLight);
-      doc.roundedRect(margin, cursor.y - 3.8, 16, 5.5, 1.2, 1.2, 'F');
+      doc.setFillColor(...PALETTE.terracottaLight);
+      doc.roundedRect(margin, sY - 3.8, 16, 5.5, 1.2, 1.2, 'F');
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.5);
-      doc.setTextColor(...PALETTE.primaryDark);
-      doc.text(`CAP ${num < 10 ? '0' + num : num}`, margin + 2.2, cursor.y);
+      doc.setTextColor(...PALETTE.terracotta);
+      doc.text(`CAP ${num < 10 ? '0' + num : num}`, margin + 2.2, sY);
 
-      // Título do Capítulo com corte proporcional
+      // Título do Capítulo
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
-      doc.setTextColor(...PALETTE.slate800);
-      const titleWidthMax = contentWidth - 42;
+      doc.setTextColor(...PALETTE.navyDark);
+      const titleWidthMax = contentWidth - 45;
       const splitToc = doc.splitTextToSize(title, titleWidthMax);
-      doc.text(splitToc, margin + 20, cursor.y);
+      doc.text(splitToc, margin + 20, sY);
 
-      // Número Real da Página
+      // Linha Dotted de Guia
+      doc.setDrawColor(...PALETTE.lineRuled);
+      doc.setLineDashPattern([0.8, 1.5], 0);
+      const textW = doc.getTextWidth(splitToc[splitToc.length - 1]);
+      const dotStartX = splitToc.length === 1 ? margin + 20 + textW + 3 : margin + 20 + textW + 3;
+      const dotEndX = pageWidth - margin - 18;
+      if (dotEndX > dotStartX) {
+        doc.line(dotStartX, sY, dotEndX, sY);
+      }
+      doc.setLineDashPattern([], 0); // Restaura linha sólida
+
+      // Número da Página
       const pageLabel = `Pág. ${pageNum < 10 ? '0' + pageNum : pageNum}`;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(...PALETTE.slate500);
+      doc.setFontSize(8.5);
+      doc.setTextColor(...PALETTE.terracotta);
       const pWidth = doc.getTextWidth(pageLabel);
-      doc.text(pageLabel, pageWidth - margin - pWidth, cursor.y);
+      doc.text(pageLabel, pageWidth - margin - pWidth, sY);
 
-      cursor.y += Math.max(8, splitToc.length * 5 + 3);
+      sY += Math.max(9, splitToc.length * 5 + 3.5);
     });
 
     // ==========================================
-    // CABEÇALHOS & RODAPÉS EM TODAS AS PÁGINAS (EXCETO CAPA)
+    // RODAPÉ E CABEÇALHOS GERAIS (PÁGINAS 2+)
     // ==========================================
     const totalPages = doc.internal.getNumberOfPages();
     for (let p = 2; p <= totalPages; p++) {
       doc.setPage(p);
 
-      // Cabeçalho Interno com Truncamento Seguro (0 colisão com o logo/tag da direita)
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(...PALETTE.slate400);
-
-      let hTitle = bookTitle;
-      if (doc.getTextWidth(hTitle) > 105) {
-        while (hTitle.length > 10 && doc.getTextWidth(hTitle + '...') > 105) {
-          hTitle = hTitle.slice(0, -1);
-        }
-        hTitle += '...';
-      }
-      doc.text(hTitle, margin, 13);
-      doc.text('TrendPDF Studio Editorial', pageWidth - margin - 35, 13);
-
-      doc.setDrawColor(...PALETTE.border);
+      // Linha de Rodapé
+      doc.setDrawColor(...PALETTE.borderLight);
       doc.setLineWidth(0.2);
-      doc.line(margin, 16, pageWidth - margin, 16);
+      doc.line(margin, 283, pageWidth - margin, 283);
 
-      // Rodapé com separador e numeração contínua
-      doc.line(margin, 281, pageWidth - margin, 281);
-      doc.text('Licença Exclusiva  •  Todos os direitos reservados', margin, 287);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...PALETTE.slateMuted);
+      doc.text('TrendPDF Studio Editorial  •  Workbook Interativo de Ação', margin, 288);
 
       const pageStr = `Página ${p} de ${totalPages}`;
       const pageStrWidth = doc.getTextWidth(pageStr);
-      doc.text(pageStr, pageWidth - margin - pageStrWidth, 287);
+      doc.text(pageStr, pageWidth - margin - pageStrWidth, 288);
     }
 
     const safeFilename = bookTitle
@@ -751,7 +943,7 @@ export const pdfService = {
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]/g, '_')
       .slice(0, 30);
-    const filename = `ebook_completo_${safeFilename}.pdf`;
+    const filename = `workbook_${safeFilename}.pdf`;
 
     doc.save(filename);
     return filename;
