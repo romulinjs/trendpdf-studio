@@ -87,35 +87,47 @@ Retorne ESTRITAMENTE um array JSON contendo 3 objetos no seguinte formato (sem f
     const parsed = JSON.parse(cleanJson);
     const ideasList = Array.isArray(parsed) ? parsed : (parsed.ideas || [parsed]);
 
-    return ideasList.map((item, index) => ({
-      ...item,
-      id: item.id || `INF-${Date.now().toString().slice(-4)}-${index + 1}`,
-      saved: false,
-      format: item.format || format || 'E-book Guia (50 págs)',
-      formatType: item.formatType || 'E-book Guia',
-      category: item.category || niche,
-      score: typeof item.score === 'number' ? item.score : +(9.0 + (index * 0.2)).toFixed(1),
-      status: item.status || 'Pronto para Produção',
-      suggestedPrice: item.suggestedPrice || 'R$ 47,00',
-      orderBump: item.orderBump || 'R$ 19,90 (Fichas complementares)',
-      profitMargin: item.profitMargin || '95% Líquido',
-      targetAudience: item.targetAudience || audience,
-      corePain: item.corePain || 'Dores e desafios principais do público-alvo',
-      whySellNow: item.whySellNow || 'Alta demanda orgânica de busca no Google Trends',
-      description: item.description || 'Infoproduto completo modelado e diagramado em PDF.',
-      coverImage: item.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
-      chapters: Array.isArray(item.chapters) && item.chapters.length > 0 ? item.chapters : [
-        { number: 1, title: 'Introdução e Diagnóstico Inicial' },
-        { number: 2, title: 'Fundamentos Essenciais' },
-        { number: 3, title: 'Mapeamento das Principais Dores' },
-        { number: 4, title: 'Estratégia Passo a Passo' },
-        { number: 5, title: 'Ferramentas e Recursos Recomendados' },
-        { number: 6, title: 'Superando Obstáculos Frequentes' },
-        { number: 7, title: 'Estudos de Caso e Aplicações Práticas' },
-        { number: 8, title: 'Checklists e Roteiros de Ação' },
-        { number: 9, title: 'Escalabilidade e Manutenção de Resultados' },
-        { number: 10, title: 'Plano de Ação dos Próximos 30 Dias' }
-      ]
-    }));
+    return ideasList.map((item, index) => {
+      const title = item.titulo_estrategico || item.title || 'Infoproduto em PDF';
+      const corePain = item.dor_resolvida || item.corePain || 'Dores e desafios principais do público-alvo';
+      const chapters = Array.isArray(item.sumario || item.chapters) && (item.sumario || item.chapters).length > 0
+        ? (item.sumario || item.chapters)
+        : [
+            { number: 1, title: 'Introdução e Diagnóstico Inicial' },
+            { number: 2, title: 'Fundamentos Essenciais' },
+            { number: 3, title: 'Mapeamento das Principais Dores' },
+            { number: 4, title: 'Estratégia Passo a Passo' },
+            { number: 5, title: 'Ferramentas e Recursos Recomendados' },
+            { number: 6, title: 'Superando Obstáculos Frequentes' },
+            { number: 7, title: 'Estudos de Caso e Aplicações Práticas' },
+            { number: 8, title: 'Checklists e Roteiros de Ação' },
+            { number: 9, title: 'Escalabilidade e Manutenção de Resultados' },
+            { number: 10, title: 'Plano de Ação dos Próximos 30 Dias' }
+          ];
+
+      return {
+        ...item,
+        id: item.id || `INF-${Date.now().toString().slice(-4)}-${index + 1}`,
+        saved: false,
+        title,
+        titulo_estrategico: title,
+        corePain,
+        dor_resolvida: corePain,
+        chapters,
+        sumario: chapters,
+        format: item.format || format || 'E-book Guia (50 págs)',
+        formatType: item.formatType || 'E-book Guia',
+        category: item.category || niche,
+        score: typeof item.score === 'number' ? item.score : +(9.0 + (index * 0.2)).toFixed(1),
+        status: item.status || 'Pronto para Produção',
+        suggestedPrice: item.suggestedPrice || 'R$ 47,00',
+        orderBump: item.orderBump || 'R$ 19,90 (Fichas complementares)',
+        profitMargin: item.profitMargin || '95% Líquido',
+        targetAudience: item.targetAudience || audience,
+        whySellNow: item.whySellNow || 'Alta demanda orgânica de busca no Google Trends',
+        description: item.description || 'Infoproduto completo modelado e diagramado em PDF.',
+        coverImage: item.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
+      };
+    });
   }
 };

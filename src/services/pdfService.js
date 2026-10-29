@@ -1,17 +1,27 @@
 import { jsPDF } from 'jspdf';
 
 export const pdfService = {
+  /**
+   * Gera e faz o download automático de um briefing editorial em PDF a partir dos dados da ideia.
+   * Contém: titulo_estrategico, dor_resolvida e a listagem iterativa dos capítulos do sumario.
+   */
   generateIdeaPDF: (idea, options = {}) => {
+    if (!idea) {
+      throw new Error('Nenhum dado de ideia foi fornecido para exportação.');
+    }
+
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
     });
 
+    // Paleta de cores do Design System
     const primaryColor = [79, 70, 229]; // #4f46e5 (Indigo)
-    const darkColor = [19, 27, 46]; // #131b2e
-    const mutedColor = [100, 116, 139]; // #64748b
-    const lightBgColor = [248, 250, 252]; // #f8fafc
+    const darkColor = [19, 27, 46]; // #131b2e (Slate 900)
+    const mutedColor = [100, 116, 139]; // #64748b (Slate 500)
+    const lightBgColor = [248, 250, 252]; // #f8fafc (Slate 50)
+    const borderColor = [226, 232, 240]; // #e2e8f0 (Slate 200)
 
     const margin = 20;
     const pageWidth = 210;
@@ -19,185 +29,149 @@ export const pdfService = {
     const contentWidth = pageWidth - margin * 2;
     let y = margin;
 
-    // --- PAGE 1: COVER & EXECUTIVE BRIEFING ---
-    // Header Bar
+    // Extração dos dados reais
+    const tituloEstrategico = idea.titulo_estrategico || idea.title || 'Infoproduto em PDF';
+    const dorResolvida = idea.dor_resolvida || idea.corePain || 'Falta de método estruturado e passo a passo claro para execução.';
+    const sumarioCapitulos = Array.isArray(idea.sumario || idea.chapters) ? (idea.sumario || idea.chapters) : [];
+    const publicoAlvo = idea.targetAudience || 'Profissionais e entusiastas do nicho';
+    const ticketSugerido = idea.suggestedPrice || 'R$ 47,00';
+    const formato = idea.format || 'E-book Guia (PDF)';
+
+    // 1. Barra de Topo Decorativa
     doc.setFillColor(...primaryColor);
     doc.rect(0, 0, pageWidth, 12, 'F');
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(255, 255, 255);
-    doc.text('TRENDPDF STUDIO  •  RELATÓRIO EDITORIAL EXECUTIVO', margin, 8);
+    doc.text('TRENDPDF STUDIO  •  BRIEFING ESTRATÉGICO EXECUTIVO', margin, 8);
 
-    y = 26;
+    y = 24;
 
-    // Badge
+    // 2. Metadados do Cabeçalho (Badge de Formato e ID)
     doc.setFillColor(238, 242, 255);
     doc.roundedRect(margin, y, 65, 7, 2, 2, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(...primaryColor);
-    doc.text(idea.format || 'Infoproduto em PDF', margin + 3, y + 5);
+    doc.text(formato, margin + 4, y + 5);
 
-    // ID Badge
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(...mutedColor);
-    doc.text(`ID: ${idea.id}  |  Score: ${idea.score}/10`, pageWidth - margin - 40, y + 5);
+    doc.text(`ID: ${idea.id || 'INF-AI'}  |  Score: ${idea.score || '9.2'}/10`, pageWidth - margin - 45, y + 5);
 
     y += 14;
 
-    // Title
+    // 3. TÍTULO ESTRATÉGICO (titulo_estrategico)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
     doc.setTextColor(...darkColor);
-    const splitTitle = doc.splitTextToSize(idea.title, contentWidth);
+    const splitTitle = doc.splitTextToSize(tituloEstrategico, contentWidth);
     doc.text(splitTitle, margin, y);
     y += splitTitle.length * 8 + 4;
 
-    // Subtitle / Description
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(70, 80, 95);
-    const splitDesc = doc.splitTextToSize(idea.description || '', contentWidth);
-    doc.text(splitDesc, margin, y);
-    y += splitDesc.length * 5 + 8;
+    // Resumo / Descrição Comercial
+    if (idea.description) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(70, 80, 95);
+      const splitDesc = doc.splitTextToSize(idea.description, contentWidth);
+      doc.text(splitDesc, margin, y);
+      y += splitDesc.length * 5 + 6;
+    }
 
-    // Decorative Separator
-    doc.setDrawColor(226, 232, 240);
+    // Linha Divisória
+    doc.setDrawColor(...borderColor);
     doc.line(margin, y, pageWidth - margin, y);
     y += 8;
 
-    // Key Metrics Box
+    // 4. BLOCO: DOR RESOLVIDA (dor_resolvida)
     doc.setFillColor(...lightBgColor);
-    doc.roundedRect(margin, y, contentWidth, 32, 3, 3, 'F');
-    doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(margin, y, contentWidth, 32, 3, 3, 'D');
+    doc.roundedRect(margin, y, contentWidth, 24, 2.5, 2.5, 'F');
+    doc.setDrawColor(...borderColor);
+    doc.roundedRect(margin, y, contentWidth, 24, 2.5, 2.5, 'D');
 
-    const colWidth = contentWidth / 3;
-
-    // Col 1: Ticket Sugerido
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(...mutedColor);
-    doc.text('TICKET RECOMENDADO', margin + 6, y + 8);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(...primaryColor);
-    doc.text(idea.suggestedPrice || 'R$ 47,00', margin + 6, y + 17);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(...mutedColor);
-    doc.text(`Bump: ${idea.orderBump || 'R$ 19,90'}`, margin + 6, y + 25);
-
-    // Col 2: Margem Estimada
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(...mutedColor);
-    doc.text('MARGEM LÍQUIDA', margin + colWidth + 6, y + 8);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(0, 108, 73);
-    doc.text(idea.profitMargin || '94%', margin + colWidth + 6, y + 17);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(...mutedColor);
-    doc.text('Infoproduto Digital', margin + colWidth + 6, y + 25);
-
-    // Col 3: Status Comercial
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(...mutedColor);
-    doc.text('STATUS COMERCIAL', margin + colWidth * 2 + 6, y + 8);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(...darkColor);
-    doc.text(idea.status || 'Pronto para Produção', margin + colWidth * 2 + 6, y + 17);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(...mutedColor);
-    doc.text('Base Preditiva 2026', margin + colWidth * 2 + 6, y + 25);
-
-    y += 40;
-
-    // Strategic Insights Section
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(...darkColor);
-    doc.text('ANÁLISE DE MERCADO & PÚBLICO-ALVO', margin, y);
-    y += 6;
-
-    // Target Audience
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(...primaryColor);
-    doc.text('Público Prioritário:', margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...darkColor);
-    const audienceSplit = doc.splitTextToSize(idea.targetAudience || 'Criadores de conteúdo e profissionais', contentWidth - 40);
-    doc.text(audienceSplit, margin + 35, y);
-    y += audienceSplit.length * 5 + 3;
+    doc.text('DOR RESOLVIDA (PROPOSTA DE VALOR CENTRAL):', margin + 6, y + 7);
 
-    // Core Pain
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(...darkColor);
+    const splitPain = doc.splitTextToSize(dorResolvida, contentWidth - 12);
+    doc.text(splitPain, margin + 6, y + 14);
+
+    y += 32;
+
+    // Bloco rápido de Público-Alvo e Ticket Recomendado
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.setTextColor(...primaryColor);
-    doc.text('Dor Crítica Resolvida:', margin, y);
+    doc.setTextColor(...mutedColor);
+    doc.text('PÚBLICO-ALVO:', margin, y);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...darkColor);
-    const painSplit = doc.splitTextToSize(idea.corePain || 'Falta de material prático estruturado', contentWidth - 40);
-    doc.text(painSplit, margin + 35, y);
-    y += painSplit.length * 5 + 3;
+    doc.text(publicoAlvo, margin + 28, y);
 
-    // Why sell now
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
+    doc.setTextColor(...mutedColor);
+    doc.text('TICKET SUGERIDO:', margin + 110, y);
+    doc.setFont('helvetica', 'bold');
     doc.setTextColor(...primaryColor);
-    doc.text('Por Que Vender Agora:', margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...darkColor);
-    const whySplit = doc.splitTextToSize(idea.whySellNow || 'Crescimento de demanda e baixa saturação', contentWidth - 40);
-    doc.text(whySplit, margin + 35, y);
-    y += whySplit.length * 5 + 10;
+    doc.text(ticketSugerido, margin + 145, y);
 
-    // Table of Chapters Header
+    y += 10;
+    doc.setDrawColor(...borderColor);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 10;
+
+    // 5. SUMÁRIO EDITORIAL - LISTAGEM ITERATIVA DOS CAPÍTULOS (sumario)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.setTextColor(...darkColor);
-    doc.text('ESTRUTURA EDITORIAL SUGERIDA (SUMÁRIO DE 10 CAPÍTULOS)', margin, y);
-    y += 7;
+    doc.text('SUMÁRIO EDITORIAL (ESTRUTURA DE 10 CAPÍTULOS)', margin, y);
+    y += 8;
 
-    // Chapters Listing
-    if (idea.chapters && idea.chapters.length > 0) {
-      idea.chapters.forEach((chap) => {
+    if (sumarioCapitulos && sumarioCapitulos.length > 0) {
+      sumarioCapitulos.forEach((chap, idx) => {
+        // Quebra automática de página caso atinja o limite inferior
         if (y > pageHeight - 25) {
           doc.addPage();
-          // Header Bar on Page 2
           doc.setFillColor(...primaryColor);
           doc.rect(0, 0, pageWidth, 8, 'F');
           y = 20;
         }
 
-        // Chapter Number Pill
+        const num = chap.number || idx + 1;
+        const chapTitle = chap.title || (typeof chap === 'string' ? chap : `Capítulo ${num}`);
+
+        // Badge do Capítulo
         doc.setFillColor(238, 242, 255);
         doc.roundedRect(margin, y - 4, 18, 6, 1.5, 1.5, 'F');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8);
         doc.setTextColor(...primaryColor);
-        doc.text(`CAP ${chap.number}`, margin + 2.5, y);
+        doc.text(`CAP ${num}`, margin + 2.5, y);
 
-        // Chapter Title
+        // Título do Capítulo
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9.5);
         doc.setTextColor(...darkColor);
-        const titleSplit = doc.splitTextToSize(chap.title, contentWidth - 24);
+        const titleSplit = doc.splitTextToSize(chapTitle, contentWidth - 24);
         doc.text(titleSplit, margin + 22, y);
 
         y += Math.max(7, titleSplit.length * 5 + 2);
       });
+    } else {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9.5);
+      doc.setTextColor(...mutedColor);
+      doc.text('Nenhum capítulo detalhado para este conceito.', margin, y);
+      y += 8;
     }
 
-    // Footer on all pages
+    // 6. Rodapé em todas as páginas
     const totalPages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
@@ -205,15 +179,22 @@ export const pdfService = {
       doc.setFontSize(8);
       doc.setTextColor(...mutedColor);
       doc.text(
-        `TrendPDF Studio — Confidencial & Exclusivo  |  Página ${i} de ${totalPages}`,
+        `TrendPDF Studio  •  Documento Gerado com IA  |  Página ${i} de ${totalPages}`,
         margin,
         pageHeight - 10
       );
     }
 
-    const filename = `${idea.id}_briefing_${idea.title.slice(0, 20).replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+    // 7. Força o download automático do arquivo .pdf
+    const sanitizedTitle = tituloEstrategico
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '_')
+      .slice(0, 25);
+    const filename = `briefing_${idea.id || 'ideia'}_${sanitizedTitle}.pdf`;
+
     doc.save(filename);
     return filename;
   }
 };
-
