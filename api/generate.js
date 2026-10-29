@@ -48,15 +48,11 @@ Retorne um array JSON com exatamente 3 objetos estruturados da seguinte forma:
 [
   {
     "id": "INF-2026-01",
-    "titulo_estrategico": "Título magnético e persuasivo do PDF",
     "title": "Título magnético e persuasivo do PDF",
-    "dor_resolvida": "Qual dor aguda e urgente este infoproduto resolve",
     "corePain": "Qual dor aguda e urgente este infoproduto resolve",
-    "ticket_sugerido": "R$ 47,00",
     "suggestedPrice": "R$ 47,00",
-    "score_preditivo": 9.4,
     "score": 9.4,
-    "format": "Formato e páginas (ex: Guia Prático + Checklists (55 págs))",
+    "format": "E-book Guia + Checklists (55 págs)",
     "formatType": "E-book Guia",
     "category": "${niche}",
     "status": "Pronto para Produção",
@@ -65,18 +61,6 @@ Retorne um array JSON com exatamente 3 objetos estruturados da seguinte forma:
     "targetAudience": "${audience}",
     "whySellNow": "Por que há alta demanda comercial agora",
     "description": "Resumo de 2 a 3 frases persuasivas sobre a proposta de valor do produto.",
-    "sumario": [
-      { "number": 1, "title": "Título do capítulo 1" },
-      { "number": 2, "title": "Título do capítulo 2" },
-      { "number": 3, "title": "Título do capítulo 3" },
-      { "number": 4, "title": "Título do capítulo 4" },
-      { "number": 5, "title": "Título do capítulo 5" },
-      { "number": 6, "title": "Título do capítulo 6" },
-      { "number": 7, "title": "Título do capítulo 7" },
-      { "number": 8, "title": "Título do capítulo 8" },
-      { "number": 9, "title": "Título do capítulo 9" },
-      { "number": 10, "title": "Título do capítulo 10" }
-    ],
     "chapters": [
       { "number": 1, "title": "Título do capítulo 1" },
       { "number": 2, "title": "Título do capítulo 2" },
@@ -107,8 +91,7 @@ Retorne um array JSON com exatamente 3 objetos estruturados da seguinte forma:
 
   const candidateModels = [
     'gemini-3.5-flash-lite',
-    'gemini-3.5-flash',
-    'gemini-flash-latest'
+    'gemini-3.5-flash'
   ];
 
   try {

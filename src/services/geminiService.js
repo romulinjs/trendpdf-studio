@@ -1,5 +1,5 @@
 /**
- * Serviço de Integração Editorial via Backend Seguro na Vercel (/api/generate)
+ * Serviço de Integração Editorial via Backend Seguro na Vercel (/api/generate e /api/write-chapter)
  * Nenhuma chave de API fica exposta no código client-side do navegador.
  */
 
@@ -44,6 +44,36 @@ export const geminiService = {
   },
 
   /**
+   * Redige o conteúdo completo, detalhado e prático de um capítulo individual via /api/write-chapter
+   */
+  writeChapter: async ({ ebookTitle, targetAudience, corePain, chapterNumber, chapterTitle }) => {
+    try {
+      const response = await fetch('/api/write-chapter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ebookTitle,
+          targetAudience,
+          corePain,
+          chapterNumber,
+          chapterTitle,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        console.error(`Erro ao gerar capítulo ${chapterNumber}:`, err);
+        return null;
+      }
+
+      return await response.json();
+    } catch (err) {
+      console.error(`Falha de rede ao gerar capítulo ${chapterNumber}:`, err);
+      return null;
+    }
+  },
+
+  /**
    * Alias simplificado para geração direta apenas com o nicho
    */
   gerarIdeiaPDF: async (nicho) => {
@@ -51,6 +81,7 @@ export const geminiService = {
   }
 };
 
-// Exportação nominal direta para flexibilidade
+// Exportações nominais para conveniência
 export const gerarIdeiaPDF = geminiService.gerarIdeiaPDF;
+export const writeChapter = geminiService.writeChapter;
 export default geminiService;

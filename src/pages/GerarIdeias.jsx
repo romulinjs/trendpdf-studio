@@ -205,7 +205,7 @@ export default function GerarIdeias({
           <div className="flex items-center gap-1.5 bg-surface-container-lowest dark:bg-slate-800 px-3 py-1.5 rounded-xl shadow-sm text-on-surface-variant dark:text-slate-300 text-xs border border-outline-variant/30 dark:border-slate-700">
             <span className="material-symbols-outlined text-secondary dark:text-emerald-400 text-[16px]">verified</span>
             <span className="text-on-surface dark:text-slate-200 font-semibold">Google Gemini:</span>
-            <span>API v1.5 Flash</span>
+            <span>API 3.5 Flash</span>
           </div>
         </div>
       </div>
